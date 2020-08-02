@@ -14,10 +14,7 @@ fn main() {
     println!("Input pl/0 file?");
     io::stdin().read_line(&mut input_file_name).expect("Failed to read line");
 
-    if let input_pl0_file = File::open(&input_file_name).unwrap() {
-        let mut contents = String::new();
-        // input_pl0_file.read_to_string(&mut contents);
-        println!("Contents: {:?}", contents);
-    }
-
+    input_file_name = input_file_name.trim().to_string();
+    println!("Reading {:?}", input_file_name);
+    let reader = symbol::io::PL0SourceCodeReader::create_from_file(&input_file_name);
 }

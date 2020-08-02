@@ -17,4 +17,4 @@ pub struct table_struct {
     size: i32,
 }
 
-pub const table: Vec<table_struct> = Vec::with_capacity(NAME_TABLE_CAPACITY.into());
+// pub const table: Vec<table_struct> = Vec::with_capacity(NAME_TABLE_CAPACITY.into());

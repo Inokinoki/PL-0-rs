@@ -1,6 +1,7 @@
 use std::io;
-// use std::fs;
-use std::fs::File;
+use std::fs;
+
+use logos::Logos;
 
 mod symbol;
 mod vm;
@@ -8,7 +9,6 @@ mod name_table;
 
 
 fn main() {
-    let nxtlev: Vec<bool> = Vec::with_capacity(symbol::SYMBOL_NUMBER.into());
 
     let mut input_file_name = String::new();
     println!("Input pl/0 file?");
@@ -16,5 +16,20 @@ fn main() {
 
     input_file_name = input_file_name.trim().to_string();
     println!("Reading {:?}", input_file_name);
-    let reader = symbol::io::PL0SourceCodeReader::create_from_file(&input_file_name);
+
+    let contents = fs::read_to_string(input_file_name)
+        .expect("Something went wrong reading the file");
+
+    let mut lex = symbol::symbol::lexer(&contents);
+
+    loop {
+        match lex.next() {
+            Some(token) => {
+                println!("Type: {:?}, \tContent: {}", token, lex.slice());
+            },
+            None => {
+                break;
+            }
+        }
+    }
 }

@@ -44,4 +44,24 @@ fn main() {
             }
         }
     }
+
+    // Add some test instruction
+    let instructions_1: Vec<vm::Instruction> = 
+        vec![
+            vm::Instruction{ f: vm::Fct::Hlt, a: 0, l: 0 },
+            vm::Instruction{ f: vm::Fct::Jmp, a: 0, l: 0 },
+        ];
+
+    let mut pl0_vm_1: vm::PL0VirtualMachine = vm::PL0VirtualMachine::load(instructions_1);
+    pl0_vm_1.execute();
+
+    let instructions_2: Vec<vm::Instruction> = 
+        vec![
+            vm::Instruction{ f: vm::Fct::Hlt, a: 0, l: 0 },
+            vm::Instruction{ f: vm::Fct::Inte, a: 1024, l: 0 },
+            vm::Instruction{ f: vm::Fct::Jmp, a: 0, l: 0 },
+        ];
+
+    let mut pl0_vm_1: vm::PL0VirtualMachine = vm::PL0VirtualMachine::load(instructions_2);
+    pl0_vm_1.execute();
 }

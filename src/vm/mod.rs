@@ -1,7 +1,9 @@
 use std::io;
 
 
-#[derive(Copy, Clone)]
+pub const STACK_SIZE: usize = 4096;
+
+#[derive(Copy, Clone, Debug)]
 pub enum Fct {
     Lit,
     Opr,
@@ -17,9 +19,9 @@ pub enum Fct {
 /* instruction structure */
 #[derive(Copy, Clone)]
 pub struct Instruction {
-    f: Fct,         // instruction
-    l: usize,         // level difference between declaration and reference
-    a: usize,         // a variant depending on l
+    pub f: Fct,         // instruction
+    pub l: usize,         // level difference between declaration and reference
+    pub a: usize,         // a variant depending on l
 }
 
 pub struct PL0VirtualMachine {
@@ -34,12 +36,12 @@ pub struct PL0VirtualMachine {
 }
 
 impl PL0VirtualMachine {
-    fn load(ins: Vec<Instruction>) -> PL0VirtualMachine {
+    pub fn load(ins: Vec<Instruction>) -> PL0VirtualMachine {
         let vm = PL0VirtualMachine {
             pc: 0,
             bp: 0,
             sp: 0,
-            stack: Vec::new(),
+            stack: Vec::with_capacity(STACK_SIZE),
 
             current_instruction: Instruction {
                 f: Fct::Hlt,
@@ -51,7 +53,7 @@ impl PL0VirtualMachine {
         vm
     }
 
-    fn execute(&mut self) {
+    pub fn execute(&mut self) {
         self.pc = 0;
         self.bp = 0;
         self.sp = 0;
@@ -65,8 +67,11 @@ impl PL0VirtualMachine {
         }
     }
 
-    fn single_step_execute(&mut self) {
+    pub fn single_step_execute(&mut self) {
         self.current_instruction = self.instructions[self.pc];
+
+        // Debug purpose
+        println!("{:?}", self.current_instruction.f);
 
         self.pc += 1;   // Move PC
 

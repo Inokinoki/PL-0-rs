@@ -4,7 +4,7 @@ use logos::Logos;
 pub const SYMBOL_NUMBER: u8 = 32;
 /* legal symbols */
 #[derive(Logos, Debug, PartialEq)]
-pub enum symbol {
+pub enum Symbol {
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Ident,
 
@@ -105,6 +105,8 @@ pub enum symbol {
     // or any other matches we wish to skip.
     #[regex(r"[ \t\n\f]+", logos::skip)]
     Nul,
+
+    EOF,
 }
 
 pub mod io;

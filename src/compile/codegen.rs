@@ -21,7 +21,7 @@ impl CodeGenerator {
         }
     }
 
-    pub fn gen(&mut self, opcode: vm::Fct, level: usize, extra: usize) -> vm::Instruction {
+    pub fn gen(&self, opcode: vm::Fct, level: usize, extra: usize) -> vm::Instruction {
         vm::Instruction {
             f: opcode,
             l: level,
@@ -142,19 +142,11 @@ impl CodeGenerator {
         self.name_table[self.table_pointer].size = data_pointer;
 
         // Begin statement
-        self.code[self.code_pointer] = vm::Instruction {
-            f: vm::Fct::Inte, 
-            l: 0,
-            a: data_pointer,
-        };
+        self.code[self.code_pointer] = self.gen(vm::Fct::Inte, 0, data_pointer);
         // Statement
         self.parse_statement(level, lexer);
         // Should end with end/semicolon
-        self.code[self.code_pointer] = vm::Instruction {
-            f: vm::Fct::Opr,
-            l: 0,
-            a: 0,
-        };
+        self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 0);
         // End statement
     }
 

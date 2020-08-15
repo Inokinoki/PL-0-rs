@@ -2,15 +2,15 @@
 const NAME_TABLE_CAPACITY: u16 = 100;
 
 /* types in name table */
-pub enum object {
-    constant,
-    variable,
-    procedur,
+pub enum NameTableObject {
+    Constant,
+    Variable,
+    Procedur,
 }
 
-pub struct table_struct {
+pub struct NameTable {
     name: String,
-    kind: object,
+    kind: NameTableObject,
     val: i32,
     level: i32,
     adr: i32,

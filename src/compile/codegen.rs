@@ -200,6 +200,22 @@ impl CodeGenerator {
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {
+        1
+    }
+
+    fn parse_expression(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        
+    }
+
+    fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        
+    }
+
+    fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        
+    }
+
+    fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         
     }
 }

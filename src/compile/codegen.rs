@@ -101,6 +101,27 @@ impl CodeGenerator {
                 },
                 symbol::Symbol::Procsym => {
                     // Proc declaration
+                    let mut should_continue = true;
+                    let mut identity = String::new();
+
+                    {
+                        // Detect identity
+                        let symbol = lexer.next();
+                        if *symbol != symbol::Symbol::Ident {
+                            should_continue = false;
+                        }
+                        identity = lexer.current_content().to_string();
+                        self.add_into_name_table(&identity, 0, nametab::NameTableObject::Procedur, level, data_pointer);
+                    }
+                    if should_continue {
+                        // semicolon
+                        let symbol = lexer.next();
+                    }
+                    if should_continue {
+                        // Enter the next level
+                        self.build_block(level + 1, lexer);
+                    }
+                    // TODO: add some rescue solution
                 },
                 _ => {
                     // Others should not be here...

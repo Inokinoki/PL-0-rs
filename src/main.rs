@@ -5,7 +5,7 @@ use logos::Logos;
 
 mod symbol;
 mod vm;
-mod name_table;
+mod compile;
 mod parser;
 
 

@@ -148,7 +148,7 @@ impl CodeGenerator {
             a: data_pointer,
         };
         // Statement
-
+        self.parse_statement(level, lexer);
         // Should end with end/semicolon
         self.code[self.code_pointer] = vm::Instruction {
             f: vm::Fct::Opr,
@@ -192,6 +192,14 @@ impl CodeGenerator {
                 }
             },
         };
+        
+    }
+
+    fn parse_statement(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        
+    }
+
+    fn find_variable(&self, name: &str, tail: usize) -> usize {
         
     }
 }

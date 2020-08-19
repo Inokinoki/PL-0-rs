@@ -345,7 +345,31 @@ impl CodeGenerator {
     }
 
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        
+        self.parse_factor(level, lexer);
+
+        {
+            lexer.next();
+        }
+
+        loop {
+            let mulop = *lexer.current();
+
+            self.parse_factor(level, lexer);
+
+            if mulop == symbol::Symbol::Times {
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 4);
+            } else if mulop == symbol::Symbol::Slash {
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 5);
+            }
+
+            {
+                lexer.next();
+            }
+
+            if *lexer.current() != symbol::Symbol::Times && *lexer.current() != symbol::Symbol::Slash {
+                break;
+            }
+        }
     }
 
     fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {

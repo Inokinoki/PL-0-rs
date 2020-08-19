@@ -188,7 +188,139 @@ impl CodeGenerator {
     }
 
     fn parse_statement(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        
+        {
+            // Get the next symbol
+            lexer.next();
+        }
+        match *lexer.current() {
+            symbol::Symbol::Ident => {
+                // Handle as a assignment statement
+
+                let identifier_index: usize = 0;    // TODO: get the index of identifier
+                let mut should_continue = true;
+                
+                if identifier_index == 0 {
+                    should_continue = false;
+                }
+
+                if should_continue {
+                    // Detect Becomes symbol
+                    if *lexer.next() != symbol::Symbol::Becomes {
+                        should_continue = false;
+                    }
+                }
+
+                if should_continue {
+                    // Expression
+                    self.parse_expression(level, lexer);
+
+                    // Store the result in the variable
+                    self.code[self.code_pointer] = self.gen(
+                        vm::Fct::Sto,
+                        level - self.name_table[identifier_index].level,
+                        self.name_table[identifier_index].adr
+                    );
+                }
+            },
+            symbol::Symbol::Readsym => {
+                // read()
+                let mut should_continue = true;
+
+                {
+                    if *lexer.next() != symbol::Symbol::Lparen {
+                        should_continue = false;
+                    }
+                }
+
+                if should_continue {
+                    loop {
+                        let mut identifier_index: usize = 0;
+                        {
+                            // Get the next symbol
+                            lexer.next();
+                        }
+
+                        if *lexer.current() != symbol::Symbol::Ident {
+                            should_continue = false;
+                        }
+
+                        if should_continue {
+                            // TODO: get the index of identifier
+                        }
+
+                        if identifier_index == 0{
+                            should_continue = false;
+                        }
+
+                        if should_continue {
+                            // Read content to the stack top
+                            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 16);
+                            // Store the result in the variable
+                            self.code[self.code_pointer] = self.gen(
+                                vm::Fct::Sto,
+                                level - self.name_table[identifier_index].level,
+                                self.name_table[identifier_index].adr
+                            );
+
+                            lexer.next();
+                        }
+
+                        if *lexer.current() != symbol::Symbol::Comma {
+                            break;
+                        }
+                    }
+                }
+
+                if should_continue {
+                    if *lexer.next() != symbol::Symbol::Rparen {
+                        should_continue = false;
+                    }
+                }
+            },
+            symbol::Symbol::Writesym => {
+                // write()
+                let mut should_continue = true;
+
+                {
+                    if *lexer.next() != symbol::Symbol::Lparen {
+                        should_continue = false;
+                    }
+                }
+
+                if should_continue {
+                    loop {
+                        if should_continue {
+                            self.parse_expression(level, lexer);
+                        }
+
+                        if should_continue {
+                            // Write content on the stack top
+                            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 14);
+
+                            lexer.next();
+                        }
+
+                        if *lexer.current() != symbol::Symbol::Comma {
+                            break;
+                        }
+                    }
+                }
+
+                if should_continue {
+                    if *lexer.next() != symbol::Symbol::Rparen {
+                        should_continue = false;
+                    }
+                }
+
+                if should_continue {
+                    // New line
+                    self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 16);
+                }
+            },
+            _ => {
+                // I cannot handle the sym
+            },
+        }
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {

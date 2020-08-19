@@ -317,6 +317,19 @@ impl CodeGenerator {
                     self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 16);
                 }
             },
+            symbol::Symbol::Callsym => {
+                // Call a function
+                let mut should_continue = true;
+            },
+            symbol::Symbol::Ifsym => {
+
+            },
+            symbol::Symbol::Beginsym => {
+
+            },
+            symbol::Symbol::Whilesym => {
+
+            },
             _ => {
                 // I cannot handle the sym
             },
@@ -340,6 +353,44 @@ impl CodeGenerator {
     }
 
     fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        
+        let mut should_continue = true;
+
+        {
+            lexer.next();
+        }
+
+        match *lexer.current() {
+            symbol::Symbol::Oddsym => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 6);
+            },
+            symbol::Symbol::Eql => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 8);
+            },
+            symbol::Symbol::Neq => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 9);
+            },
+            symbol::Symbol::Lss => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 10);
+            },
+            symbol::Symbol::Geq => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 11);
+            },
+            symbol::Symbol::Gtr => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 12);
+            },
+            symbol::Symbol::Leq => {
+                self.parse_expression(level, lexer);
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 13);
+            },
+            _ => {
+                // I will not handle it
+            },
+        }
     }
 }

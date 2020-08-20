@@ -348,7 +348,24 @@ impl CodeGenerator {
                 }
             },
             symbol::Symbol::Beginsym => {
+                let mut should_continue = false;
 
+                self.parse_statement(level, lexer);
+
+                loop {
+                    {
+                        // Get the next symbol
+                        lexer.next();
+                    }
+                    if *lexer.current() != symbol::Symbol::Semicolon {
+                        break;
+                    }
+                    self.parse_statement(level, lexer);
+                }
+
+                if *lexer.current() != symbol::Symbol::Endsym {
+                    // Can raise an error
+                }
             },
             symbol::Symbol::Whilesym => {
 

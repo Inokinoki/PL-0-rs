@@ -320,6 +320,28 @@ impl CodeGenerator {
             symbol::Symbol::Callsym => {
                 // Call a function
                 let mut should_continue = true;
+                let mut index = 0;
+                {
+                    // Get the next symbol
+                    lexer.next();
+                }
+
+                if *lexer.current() != symbol::Symbol::Ident {
+                    should_continue = false;
+                }
+
+                if should_continue {
+                    // TODO: get the index of identifier
+                }
+
+                if index == 0 {
+                    should_continue = false;
+                }
+
+                if self.name_table[index].kind == nametab::NameTableObject::Procedur {
+                    self.code[self.code_pointer] = self.gen(vm::Fct::Cal, 
+                        level - self.name_table[index].level, self.name_table[index].adr);
+                }
             },
             symbol::Symbol::Ifsym => {
                 let mut should_continue = true;

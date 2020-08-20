@@ -368,7 +368,26 @@ impl CodeGenerator {
                 }
             },
             symbol::Symbol::Whilesym => {
+                let mut should_continue = true;
 
+                let cx1 = self.code_pointer;    // condition pos
+
+                self.parse_condition(level, lexer);
+
+                let cx2 = self.code_pointer;    // loop end pos
+
+                // Generate Jump before parse statement
+                self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, 0);
+
+                if *lexer.current() != symbol::Symbol::Dosym {
+                    should_continue = false;
+                }
+
+                if should_continue {
+                    self.parse_statement(level, lexer);
+                    self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, cx1);  // Jump to condition
+                    self.code[cx1].a = self.code_pointer;
+                }
             },
             _ => {
                 // I cannot handle the sym

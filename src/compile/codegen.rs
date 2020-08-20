@@ -352,13 +352,25 @@ impl CodeGenerator {
         }
 
         loop {
-            let mulop = *lexer.current();
+            let mut isTime = false;
+            let mut isSlash = false;
+            match lexer.current() {
+                symbol::Symbol::Times => {
+                    isTime = true;
+                },
+                symbol::Symbol::Slash => {
+                    isSlash = true;
+                },
+                _ => {
+                    // Nothing
+                },
+            }
 
             self.parse_factor(level, lexer);
 
-            if mulop == symbol::Symbol::Times {
+            if isTime {
                 self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 4);
-            } else if mulop == symbol::Symbol::Slash {
+            } else if isSlash {
                 self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 5);
             }
 

@@ -322,7 +322,30 @@ impl CodeGenerator {
                 let mut should_continue = true;
             },
             symbol::Symbol::Ifsym => {
+                let mut should_continue = true;
+                self.parse_condition(level, lexer);
+                {
+                    // Get the next symbol
+                    lexer.next();
+                }
 
+                {
+                    if *lexer.current() != symbol::Symbol::Thensyn {
+                        should_continue = false;
+                    }
+                }
+
+                if should_continue {
+                    let cx1 = self.code_pointer;
+
+                    // Generate Jump before parse statement
+                    self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, 0);
+
+                    self.parse_statement(level, lexer);
+
+                    // Modify the jump address
+                    self.code[cx1].a = self.code_pointer;
+                }
             },
             symbol::Symbol::Beginsym => {
 

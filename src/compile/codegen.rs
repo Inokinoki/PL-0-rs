@@ -542,6 +542,7 @@ impl CodeGenerator {
             {
                 lexer.next();
             }
+
             match &lexer.current() {
                 symbol::Symbol::Ident => {
                     let mut should_continue = true;
@@ -592,10 +593,10 @@ impl CodeGenerator {
                 },
                 _ => {
                     // Nothing to do
+                    // jump out
+                    break;
                 },
             }
-
-            // TODO: jump out condition
         }
     }
 

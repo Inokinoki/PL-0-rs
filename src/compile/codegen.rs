@@ -574,9 +574,9 @@ impl CodeGenerator {
                 symbol::Symbol::Number => {
                     // Number
                     self.code_pointer += 1;
-                    // TODO: parse usize/i64
-                    // self.code.push(self.gen(vm::Fct::Lit, 0,
-                    //     lexer.current_content() as usize));
+                    // parse i64 as usize
+                    self.code.push(self.gen(vm::Fct::Lit, 0,
+                        lexer.current_content().parse::<usize>().unwrap()));
                 },
                 symbol::Symbol::Lparen => {
                     // Left parent

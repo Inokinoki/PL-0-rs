@@ -423,7 +423,7 @@ impl CodeGenerator {
             return 0;
         }
         loop {
-            if self.name_table[pointer - 1].name == name || pointer == 0 {
+            if pointer <= 0 || self.name_table[pointer - 1].name == name {
                 break;
             }
             pointer -= 1;
@@ -590,4 +590,42 @@ mod tests {
         assert!(generator.name_table[2].kind == nametab::NameTableObject::Procedur);
     }
 
+    #[test]
+    fn test_find_variable_no_duplicated_name() {
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.add_into_name_table("const_1", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("const_2", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("const_3", 10, nametab::NameTableObject::Constant, 0, 0);
+
+        assert_eq!(generator.find_variable("const_3", generator.name_table.len() + 1), 0);
+        assert_eq!(generator.find_variable("const_1", generator.name_table.len()), 1);
+        assert_eq!(generator.find_variable("const_2", generator.name_table.len()), 2);
+        assert_eq!(generator.find_variable("const_3", generator.name_table.len()), 3);
+    }
+
+    #[test]
+    fn test_find_variable_with_duplicated_name() {
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.add_into_name_table("const_1", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("const_1", 20, nametab::NameTableObject::Constant, 1, 0);
+        generator.add_into_name_table("const_1", 30, nametab::NameTableObject::Constant, 2, 0);
+
+        assert_eq!(generator.find_variable("const_1", 1), 1);
+        assert_eq!(generator.find_variable("const_1", 2), 2);
+        assert_eq!(generator.find_variable("const_1", 3), 3);
+    }
+
+    #[test]
+    fn test_find_variable_not_found() {
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.add_into_name_table("const_1", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("const_2", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("const_3", 10, nametab::NameTableObject::Constant, 0, 0);
+
+        assert_eq!(generator.find_variable("const_3", generator.name_table.len() + 1), 0);
+        assert_eq!(generator.find_variable("const_4", generator.name_table.len()), 0);
+    }
 }

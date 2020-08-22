@@ -537,7 +537,66 @@ impl CodeGenerator {
     }
 
     fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        // Handle factor
+        loop {
+            {
+                lexer.next();
+            }
+            match &lexer.current() {
+                symbol::Symbol::Ident => {
+                    let mut should_continue = true;
+                    // Get the name
+                    let index = self.find_variable(lexer.current_content(), self.table_pointer);
 
+                    if index == 0 {
+                        should_continue = false;
+                    }
+
+                    if should_continue {
+                        match self.name_table[index - 1].kind {
+                            nametab::NameTableObject::Constant => {
+                                self.code_pointer += 1;
+                                self.code.push(self.gen(vm::Fct::Lit, 0,
+                                    self.name_table[index - 1].val as usize));
+                            },
+                            nametab::NameTableObject::Variable => {
+                                self.code_pointer += 1;
+                                self.code.push(self.gen(vm::Fct::Lod,
+                                    level - self.name_table[index - 1].level,
+                                    self.name_table[index - 1].val as usize));
+                            },
+                            _ => {
+                                // Error, should not be a procedur
+                            },
+                        }
+                    }
+                },
+                symbol::Symbol::Number => {
+                    // Number
+                    self.code_pointer += 1;
+                    // TODO: parse usize/i64
+                    // self.code.push(self.gen(vm::Fct::Lit, 0,
+                    //     lexer.current_content() as usize));
+                },
+                symbol::Symbol::Lparen => {
+                    // Left parent
+                    self.parse_expression(level, lexer);
+
+                    {
+                        lexer.next();
+                    }
+
+                    if *lexer.current() != symbol::Symbol::Rparen {
+                        // TODO: raise an error
+                    }
+                },
+                _ => {
+                    // Nothing to do
+                },
+            }
+
+            // TODO: jump out condition
+        }
     }
 
     fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {

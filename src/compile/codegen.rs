@@ -196,7 +196,8 @@ impl CodeGenerator {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
 
-                let identifier_index: usize = 0;    // TODO: get the index of identifier
+                // Get the index of identifier
+                let identifier_index: usize = self.find_variable(lexer.current_content(), self.table_pointer);
                 let mut should_continue = true;
                 
                 if identifier_index == 0 {
@@ -245,7 +246,8 @@ impl CodeGenerator {
                         }
 
                         if should_continue {
-                            // TODO: get the index of identifier
+                            // Get the index of identifier
+                            identifier_index = self.find_variable(lexer.current_content(), self.table_pointer);
                         }
 
                         if identifier_index == 0{
@@ -331,7 +333,8 @@ impl CodeGenerator {
                 }
 
                 if should_continue {
-                    // TODO: get the index of identifier
+                    // Get the index of identifier
+                    index = self.find_variable(lexer.current_content(), self.table_pointer);
                 }
 
                 if index == 0 {

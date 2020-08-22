@@ -503,14 +503,14 @@ impl CodeGenerator {
         }
 
         loop {
-            let mut isTime = false;
-            let mut isSlash = false;
+            let mut is_time = false;
+            let mut is_slash = false;
             match lexer.current() {
                 symbol::Symbol::Times => {
-                    isTime = true;
+                    is_time = true;
                 },
                 symbol::Symbol::Slash => {
-                    isSlash = true;
+                    is_slash = true;
                 },
                 _ => {
                     // Nothing
@@ -520,9 +520,9 @@ impl CodeGenerator {
             self.parse_factor(level, lexer);
 
             self.code_pointer += 1;
-            if isTime {
+            if is_time {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 4));
-            } else if isSlash {
+            } else if is_slash {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 5));
             }
 

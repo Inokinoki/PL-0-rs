@@ -152,7 +152,7 @@ impl CodeGenerator {
 
     fn add_into_name_table(&mut self, identity: &str, num: i64, k: nametab::NameTableObject, level: usize, pdx: usize) {
         self.table_pointer += 1;
-        self.name_table[self.table_pointer] = match k {
+        self.name_table.push(match k {
             nametab::NameTableObject::Constant => {
                 nametab::NameTableItem {
                     name: String::from(identity),
@@ -183,7 +183,7 @@ impl CodeGenerator {
                     size: 0,
                 }
             },
-        };
+        });
         
     }
 
@@ -565,4 +565,29 @@ impl CodeGenerator {
             },
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::compile::nametab;
+    use crate::compile::codegen;
+
+    #[test]
+    fn test_add_into_name_table() {
+        let mut generator = codegen::CodeGenerator::new();
+        generator.add_into_name_table("const_1", 10, nametab::NameTableObject::Constant, 0, 0);
+        generator.add_into_name_table("var_1", 20, nametab::NameTableObject::Variable, 0, 0);
+        generator.add_into_name_table("func_1", 0, nametab::NameTableObject::Procedur, 0, 0);
+
+        assert_eq!(generator.name_table.len(), 3);
+        assert_eq!(generator.name_table[0].name, "const_1");
+        assert!(generator.name_table[0].kind == nametab::NameTableObject::Constant);
+
+        assert_eq!(generator.name_table[1].name, "var_1");
+        assert!(generator.name_table[1].kind == nametab::NameTableObject::Variable);
+
+        assert_eq!(generator.name_table[2].name, "func_1");
+        assert!(generator.name_table[2].kind == nametab::NameTableObject::Procedur);
+    }
+
 }

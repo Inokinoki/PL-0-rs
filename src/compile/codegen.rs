@@ -418,7 +418,17 @@ impl CodeGenerator {
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {
-        1
+        let mut pointer = tail;
+        if pointer > self.name_table.len() {
+            return 0;
+        }
+        loop {
+            if self.name_table[pointer - 1].name == name || pointer == 0 {
+                break;
+            }
+            pointer -= 1;
+        }
+        pointer
     }
 
     fn parse_expression(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
@@ -511,7 +521,7 @@ impl CodeGenerator {
     }
 
     fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        
+
     }
 
     fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {

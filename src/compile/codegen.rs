@@ -422,7 +422,52 @@ impl CodeGenerator {
     }
 
     fn parse_expression(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        
+        let mut is_positive = true;
+
+        {
+            lexer.next();
+        }
+        if *lexer.current() == symbol::Symbol::Minus {
+            is_positive = false;
+        }
+
+        {
+            // Parse a term
+            self.parse_term(level, lexer);
+        }
+
+        if !is_positive {
+            // Negative
+            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 1);
+        }
+
+        // TODO: Clarify sym != plus and sym != minus, gensym or not
+
+        loop {
+            {
+                lexer.next();
+            }
+
+            if *lexer.current() == symbol::Symbol::Minus {
+                is_positive = false;
+            } else if *lexer.current() == symbol::Symbol::Plus {
+                is_positive = true;
+            }
+    
+            self.parse_term(level, lexer);
+
+            if is_positive {
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 2);
+            } else {
+                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 3);
+            }
+
+            if *lexer.current() != symbol::Symbol::Minus && *lexer.current() != symbol::Symbol::Plus {
+                break;
+            }
+        }
+
+
     }
 
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {

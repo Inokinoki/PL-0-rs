@@ -6,7 +6,6 @@ use logos::Logos;
 mod symbol;
 mod vm;
 mod compile;
-mod parser;
 
 
 fn main() {

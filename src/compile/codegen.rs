@@ -142,11 +142,13 @@ impl CodeGenerator {
         self.name_table[self.table_pointer].size = data_pointer;
 
         // Begin statement
-        self.code[self.code_pointer] = self.gen(vm::Fct::Inte, 0, data_pointer);
+        self.code_pointer += 1;
+        self.code.push(self.gen(vm::Fct::Inte, 0, data_pointer));
         // Statement
         self.parse_statement(level, lexer);
         // Should end with end/semicolon
-        self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 0);
+        self.code_pointer += 1;
+        self.code.push(self.gen(vm::Fct::Opr, 0, 0));
         // End statement
     }
 
@@ -216,11 +218,12 @@ impl CodeGenerator {
                     self.parse_expression(level, lexer);
 
                     // Store the result in the variable
-                    self.code[self.code_pointer] = self.gen(
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(
                         vm::Fct::Sto,
                         level - self.name_table[identifier_index].level,
                         self.name_table[identifier_index].adr
-                    );
+                    ));
                 }
             },
             symbol::Symbol::Readsym => {
@@ -255,14 +258,15 @@ impl CodeGenerator {
                         }
 
                         if should_continue {
+                            self.code_pointer += 2;
                             // Read content to the stack top
-                            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 16);
+                            self.code.push(self.gen(vm::Fct::Opr, 0, 16));
                             // Store the result in the variable
-                            self.code[self.code_pointer] = self.gen(
+                            self.code.push(self.gen(
                                 vm::Fct::Sto,
                                 level - self.name_table[identifier_index].level,
                                 self.name_table[identifier_index].adr
-                            );
+                            ));
 
                             lexer.next();
                         }
@@ -296,8 +300,9 @@ impl CodeGenerator {
                         }
 
                         if should_continue {
+                            self.code_pointer += 1;
                             // Write content on the stack top
-                            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 14);
+                            self.code.push(self.gen(vm::Fct::Opr, 0, 14));
 
                             lexer.next();
                         }
@@ -315,8 +320,9 @@ impl CodeGenerator {
                 }
 
                 if should_continue {
+                    self.code_pointer += 1;
                     // New line
-                    self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 16);
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 16));
                 }
             },
             symbol::Symbol::Callsym => {
@@ -342,8 +348,9 @@ impl CodeGenerator {
                 }
 
                 if self.name_table[index].kind == nametab::NameTableObject::Procedur {
-                    self.code[self.code_pointer] = self.gen(vm::Fct::Cal, 
-                        level - self.name_table[index].level, self.name_table[index].adr);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Cal, 
+                        level - self.name_table[index].level, self.name_table[index].adr));
                 }
             },
             symbol::Symbol::Ifsym => {
@@ -364,7 +371,8 @@ impl CodeGenerator {
                     let cx1 = self.code_pointer;
 
                     // Generate Jump before parse statement
-                    self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, 0);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Jpc, 0, 0));
 
                     self.parse_statement(level, lexer);
 
@@ -402,7 +410,8 @@ impl CodeGenerator {
                 let cx2 = self.code_pointer;    // loop end pos
 
                 // Generate Jump before parse statement
-                self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, 0);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Jpc, 0, 0));
 
                 if *lexer.current() != symbol::Symbol::Dosym {
                     should_continue = false;
@@ -410,7 +419,8 @@ impl CodeGenerator {
 
                 if should_continue {
                     self.parse_statement(level, lexer);
-                    self.code[self.code_pointer] = self.gen(vm::Fct::Jpc, 0, cx1);  // Jump to condition
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Jpc, 0, cx1));  // Jump to condition
                     self.code[cx1].a = self.code_pointer;
                 }
             },
@@ -451,7 +461,8 @@ impl CodeGenerator {
 
         if !is_positive {
             // Negative
-            self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 1);
+            self.code_pointer += 1;
+            self.code.push(self.gen(vm::Fct::Opr, 0, 1));
         }
 
         // TODO: Clarify sym != plus and sym != minus, gensym or not
@@ -469,10 +480,11 @@ impl CodeGenerator {
     
             self.parse_term(level, lexer);
 
+            self.code_pointer += 1;
             if is_positive {
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 2);
+                self.code.push(self.gen(vm::Fct::Opr, 0, 2));
             } else {
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 3);
+                self.code.push(self.gen(vm::Fct::Opr, 0, 3));
             }
 
             if *lexer.current() != symbol::Symbol::Minus && *lexer.current() != symbol::Symbol::Plus {
@@ -507,10 +519,11 @@ impl CodeGenerator {
 
             self.parse_factor(level, lexer);
 
+            self.code_pointer += 1;
             if isTime {
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 4);
+                self.code.push(self.gen(vm::Fct::Opr, 0, 4));
             } else if isSlash {
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 5);
+                self.code.push(self.gen(vm::Fct::Opr, 0, 5));
             }
 
             {
@@ -537,31 +550,38 @@ impl CodeGenerator {
         match *lexer.current() {
             symbol::Symbol::Oddsym => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 6);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 6));
             },
             symbol::Symbol::Eql => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 8);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 8));
             },
             symbol::Symbol::Neq => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 9);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 9));
             },
             symbol::Symbol::Lss => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 10);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 10));
             },
             symbol::Symbol::Geq => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 11);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 11));
             },
             symbol::Symbol::Gtr => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 12);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 12));
             },
             symbol::Symbol::Leq => {
                 self.parse_expression(level, lexer);
-                self.code[self.code_pointer] = self.gen(vm::Fct::Opr, 0, 13);
+                self.code_pointer += 1;
+                self.code.push(self.gen(vm::Fct::Opr, 0, 13));
             },
             _ => {
                 // I will not handle it

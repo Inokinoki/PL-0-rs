@@ -498,13 +498,10 @@ impl CodeGenerator {
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         self.parse_factor(level, lexer);
 
-        {
-            lexer.next();
-        }
-
         loop {
             let mut is_time = false;
             let mut is_slash = false;
+
             match lexer.current() {
                 symbol::Symbol::Times => {
                     is_time = true;
@@ -524,10 +521,6 @@ impl CodeGenerator {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 4));
             } else if is_slash {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 5));
-            }
-
-            {
-                lexer.next();
             }
 
             if *lexer.current() != symbol::Symbol::Times && *lexer.current() != symbol::Symbol::Slash {
@@ -780,5 +773,101 @@ mod tests {
     #[ignore]
     fn test_simple_var_lparent_factor() {
         // not ready for test
+    }
+
+    /* test constant production term */
+    #[test]
+    fn test_constant_production_term() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("8 * 9");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_term(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 3);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 8);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 4);
+    }
+
+    /* test consecutive constant production term */
+    #[test]
+    fn test_consecutive_constant_production_term() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("8 * 9 * 10");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_term(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 5);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 8);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 4);
+        assert_eq!(generator.code[3].f, vm::Fct::Lit);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 10);
+        assert_eq!(generator.code[4].f, vm::Fct::Opr);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 4);
+    }
+
+    /* test constant division term */
+    #[test]
+    fn test_constant_division_term() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("18 / 9");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_term(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 3);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 18);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 5);
+    }
+
+    /* test consecutive constant production term */
+    #[test]
+    fn test_consecutive_constant_division_term() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("18 / 9 / 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_term(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 5);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 18);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 5);
+        assert_eq!(generator.code[3].f, vm::Fct::Lit);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 2);
+        assert_eq!(generator.code[4].f, vm::Fct::Opr);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 5);
     }
 }

@@ -3,7 +3,7 @@ use std::io;
 
 pub const STACK_SIZE: usize = 4096;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Fct {
     Lit,
     Opr,

@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pl0-rust"
+name = "pl0rust"
 version = "0.1.0"
 dependencies = [
  "logos",

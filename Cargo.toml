@@ -1,5 +1,5 @@
 [package]
-name = "pl0-rust"
+name = "pl0rust"
 version = "0.1.0"
 authors = ["Inoki <veyx.shaw@gmail.com>"]
 edition = "2018"

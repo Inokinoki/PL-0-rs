@@ -711,4 +711,74 @@ mod tests {
         assert_eq!(generator.find_variable("const_3", generator.name_table.len() + 1), 0);
         assert_eq!(generator.find_variable("const_4", generator.name_table.len()), 0);
     }
+
+    /* ================================================ */
+    /* --------------- test Code Generator ------------ */
+    /* ================================================ */
+    use crate::symbol;
+    use crate::vm;
+
+    /* test number factor*/
+    #[test]
+    fn test_simple_number_factor() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("123");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_factor(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 1);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 123);
+    }
+
+    /* test const ident factor */
+    #[test]
+    fn test_simple_const_ident_factor() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("abc");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.add_into_name_table("abc", 10, nametab::NameTableObject::Constant, 0, 0);
+
+        generator.parse_factor(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 1);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 10);
+    }
+
+    /* test var ident factor */
+    #[test]
+    fn test_simple_var_ident_factor() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("abc");
+        let mut generator = codegen::CodeGenerator::new();
+
+        // the value 10 will not take effect
+        generator.add_into_name_table("abc", 10, nametab::NameTableObject::Variable, 0, 0);
+
+        generator.parse_factor(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 1);
+        assert_eq!(generator.code[0].f, vm::Fct::Lod);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 0);
+    }
+
+    /* TODO: test procedur ident factor, should panic */
+    #[test]
+    #[ignore]
+    fn test_simple_var_procedur_factor() {
+        // not ready for test
+    }
+
+    /* TODO: test Lparent factor */
+    #[test]
+    #[ignore]
+    fn test_simple_var_lparent_factor() {
+        // not ready for test
+    }
 }

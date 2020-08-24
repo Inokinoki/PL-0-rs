@@ -31,6 +31,9 @@ impl CodeGenerator {
 
     pub fn build_block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         let mut data_pointer: usize = 0;    // Count data size in this block (single level, no deeper)
+        {
+            lexer.next();
+        }
         loop {
             match lexer.current() {
                 symbol::Symbol::Constsym => {
@@ -128,6 +131,9 @@ impl CodeGenerator {
                 },
             }
 
+            {
+                lexer.next();
+            }
             if *lexer.current() != symbol::Symbol::Constsym
                 && *lexer.current() != symbol::Symbol::Varsym
                 && *lexer.current() != symbol::Symbol::Procsym {
@@ -137,13 +143,14 @@ impl CodeGenerator {
         }
 
         // Generate current block
-        self.code[self.name_table[self.table_pointer].adr].a = self.code_pointer;
-        self.name_table[self.table_pointer].adr = self.code_pointer;
-        self.name_table[self.table_pointer].size = data_pointer;
 
         // Begin statement
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Inte, 0, data_pointer));
+
+        self.code[self.name_table[self.table_pointer - 1].adr].a = self.code_pointer - 1;
+        self.name_table[self.table_pointer - 1].adr = self.code_pointer - 1;
+        self.name_table[self.table_pointer - 1].size = data_pointer;
         // Statement
         self.parse_statement(level, lexer);
         // Should end with end/semicolon
@@ -464,6 +471,9 @@ impl CodeGenerator {
             } else if *lexer.current() == symbol::Symbol::Plus {
                 is_positive = true;
             }*/
+            if *lexer.current() != symbol::Symbol::Minus && *lexer.current() != symbol::Symbol::Plus {
+                break;
+            }
 
             is_positive = self.parse_term(level, lexer);
 
@@ -472,10 +482,6 @@ impl CodeGenerator {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 2));
             } else {
                 self.code.push(self.gen(vm::Fct::Opr, 0, 3));
-            }
-
-            if *lexer.current() != symbol::Symbol::Minus && *lexer.current() != symbol::Symbol::Plus {
-                break;
             }
         }
 
@@ -916,6 +922,22 @@ mod tests {
         assert_eq!(generator.code[4].f, vm::Fct::Opr);
         assert_eq!(generator.code[4].l, 0);
         assert_eq!(generator.code[4].a, 2);
+    }
+
+    /* test simple expression */
+    #[test]
+    fn test_simple_expression() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_expression(0, &mut lex);
+
+        /* 2 */
+        assert_eq!(generator.code_pointer, 1);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 2);
     }
 
     /* test simple minus expression */

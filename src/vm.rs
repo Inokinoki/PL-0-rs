@@ -71,22 +71,23 @@ impl PL0VirtualMachine {
         self.current_instruction = self.instructions[self.pc];
 
         // Debug purpose
-        println!("{:?}", self.current_instruction.f);
+        // println!("{:?}", self.current_instruction.f);
 
         self.pc += 1;   // Move PC
 
         match self.current_instruction.f {
             Fct::Lit => {
                 // Push the value of a to the stack
-                self.stack[self.sp] = self.current_instruction.a as i64;
                 self.sp += 1;
+                self.stack.push(self.current_instruction.a as i64);
             },
             Fct::Opr => {
                 match self.current_instruction.a {
                     0 => {
+                        // Exit to the higher layer
                         self.sp = self.bp;
-                        self.pc = self.stack[self.sp + 2] as usize;
-                        self.bp = self.stack[self.sp + 1] as usize;
+                        self.pc = 0;
+                        // self.bp = self.stack[self.sp + 1 - 1] as usize;
                     },
                     1 => {
                         // Inverse the number on the top of stack
@@ -176,10 +177,10 @@ impl PL0VirtualMachine {
             },
             Fct::Lod => {
                 // Push the data on address a (base b) to the stack
-                self.stack[self.sp] = self.stack[
-                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
-                ];
                 self.sp += 1;
+                self.stack.push(self.stack[
+                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
+                ]);
             },
             Fct::Sto => {
                 // Stock
@@ -189,9 +190,9 @@ impl PL0VirtualMachine {
             },
             Fct::Cal => {
                 // Call a procedure
-                self.stack[self.sp] = base(self.current_instruction.l, &self.stack, self.bp) as i64;
-                self.stack[self.sp + 1] = self.bp as i64;
-                self.stack[self.sp + 2] = self.pc as i64;
+                self.stack[self.sp - 1] = base(self.current_instruction.l, &self.stack, self.bp) as i64;
+                self.stack[self.sp + 1 - 1] = self.bp as i64;
+                self.stack[self.sp + 2 - 1] = self.pc as i64;
 
                 self.bp = self.sp;
                 self.pc = self.current_instruction.a;   // Jump

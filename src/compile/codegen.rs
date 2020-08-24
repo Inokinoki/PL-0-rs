@@ -641,6 +641,10 @@ impl CodeGenerator {
             },
         }
     }
+
+    pub fn get_vm_code(&self) -> &Vec<vm::Instruction> {
+        &self.code
+    }
 }
 
 #[cfg(test)]

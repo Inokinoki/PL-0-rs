@@ -448,15 +448,8 @@ impl CodeGenerator {
         let mut is_positive = true;
 
         {
-            lexer.next();
-        }
-        if *lexer.current() == symbol::Symbol::Minus {
-            is_positive = false;
-        }
-
-        {
             // Parse a term
-            self.parse_term(level, lexer);
+            is_positive = self.parse_term(level, lexer);
         }
 
         if !is_positive {
@@ -465,20 +458,14 @@ impl CodeGenerator {
             self.code.push(self.gen(vm::Fct::Opr, 0, 1));
         }
 
-        // TODO: Clarify sym != plus and sym != minus, gensym or not
-
         loop {
-            {
-                lexer.next();
-            }
-
-            if *lexer.current() == symbol::Symbol::Minus {
+            /*if *lexer.current() == symbol::Symbol::Minus {
                 is_positive = false;
             } else if *lexer.current() == symbol::Symbol::Plus {
                 is_positive = true;
-            }
-    
-            self.parse_term(level, lexer);
+            }*/
+
+            is_positive = self.parse_term(level, lexer);
 
             self.code_pointer += 1;
             if is_positive {
@@ -495,14 +482,14 @@ impl CodeGenerator {
 
     }
 
-    fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        self.parse_factor(level, lexer);
+    fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
+        let mut is_positive = self.parse_factor(level, lexer);
 
         loop {
             let mut is_time = false;
             let mut is_slash = false;
 
-            match lexer.current() {
+            match *lexer.current() {
                 symbol::Symbol::Times => {
                     is_time = true;
                 },
@@ -516,81 +503,91 @@ impl CodeGenerator {
 
             self.parse_factor(level, lexer);
 
-            self.code_pointer += 1;
             if is_time {
+                self.code_pointer += 1;
                 self.code.push(self.gen(vm::Fct::Opr, 0, 4));
             } else if is_slash {
+                self.code_pointer += 1;
                 self.code.push(self.gen(vm::Fct::Opr, 0, 5));
             }
 
-            if *lexer.current() != symbol::Symbol::Times && *lexer.current() != symbol::Symbol::Slash {
-                break;
-            }
-        }
-    }
-
-    fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        // Handle factor
-        loop {
-            {
+            if *lexer.current() == symbol::Symbol::Number {
                 lexer.next();
             }
 
-            match &lexer.current() {
-                symbol::Symbol::Ident => {
-                    let mut should_continue = true;
-                    // Get the name
-                    let index = self.find_variable(lexer.current_content(), self.table_pointer);
-
-                    if index == 0 {
-                        should_continue = false;
-                    }
-
-                    if should_continue {
-                        match self.name_table[index - 1].kind {
-                            nametab::NameTableObject::Constant => {
-                                self.code_pointer += 1;
-                                self.code.push(self.gen(vm::Fct::Lit, 0,
-                                    self.name_table[index - 1].val as usize));
-                            },
-                            nametab::NameTableObject::Variable => {
-                                self.code_pointer += 1;
-                                self.code.push(self.gen(vm::Fct::Lod,
-                                    level - self.name_table[index - 1].level,
-                                    self.name_table[index - 1].val as usize));
-                            },
-                            _ => {
-                                // Error, should not be a procedur
-                            },
-                        }
-                    }
-                },
-                symbol::Symbol::Number => {
-                    // Number
-                    self.code_pointer += 1;
-                    // parse i64 as usize
-                    self.code.push(self.gen(vm::Fct::Lit, 0,
-                        lexer.current_content().parse::<usize>().unwrap()));
-                },
-                symbol::Symbol::Lparen => {
-                    // Left parent
-                    self.parse_expression(level, lexer);
-
-                    {
-                        lexer.next();
-                    }
-
-                    if *lexer.current() != symbol::Symbol::Rparen {
-                        // TODO: raise an error
-                    }
-                },
-                _ => {
-                    // Nothing to do
-                    // jump out
-                    break;
-                },
+            if *lexer.current() != symbol::Symbol::Times && *lexer.current() != symbol::Symbol::Slash {
+                // assert_eq!(*lexer.current(), symbol::Symbol::Times);
+                break;
             }
         }
+
+        is_positive
+    }
+
+    fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
+        // Handle factor
+        let mut is_positive = true;
+        if *lexer.current() == symbol::Symbol::Minus {
+            is_positive = false;
+        }
+
+        {
+            lexer.next();
+        }
+        match &lexer.current() {
+            symbol::Symbol::Ident => {
+                let mut should_continue = true;
+                // Get the name
+                let index = self.find_variable(lexer.current_content(), self.table_pointer);
+
+                if index == 0 {
+                    should_continue = false;
+                }
+
+                if should_continue {
+                    match self.name_table[index - 1].kind {
+                        nametab::NameTableObject::Constant => {
+                            self.code_pointer += 1;
+                            self.code.push(self.gen(vm::Fct::Lit, 0,
+                                self.name_table[index - 1].val as usize));
+                        },
+                        nametab::NameTableObject::Variable => {
+                            self.code_pointer += 1;
+                            self.code.push(self.gen(vm::Fct::Lod,
+                                level - self.name_table[index - 1].level,
+                                self.name_table[index - 1].val as usize));
+                        },
+                        _ => {
+                            // Error, should not be a procedur
+                        },
+                    }
+                }
+            },
+            symbol::Symbol::Number => {
+                // Number
+                self.code_pointer += 1;
+                // parse i64 as usize
+                self.code.push(self.gen(vm::Fct::Lit, 0,
+                    lexer.current_content().parse::<usize>().unwrap()));
+            },
+            symbol::Symbol::Lparen => {
+                // Left parent
+                self.parse_expression(level, lexer);
+
+                {
+                    lexer.next();
+                }
+
+                if *lexer.current() != symbol::Symbol::Rparen {
+                    // TODO: raise an error
+                }
+            },
+            _ => {
+                // Nothing to do
+                // jump out
+            },
+        }
+        is_positive
     }
 
     fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
@@ -775,6 +772,21 @@ mod tests {
         // not ready for test
     }
 
+    /* test single term */
+    #[test]
+    fn test_single_term() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("8");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_term(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 1);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 8);
+    }
+
     /* test constant production term */
     #[test]
     fn test_constant_production_term() {
@@ -869,5 +881,61 @@ mod tests {
         assert_eq!(generator.code[4].f, vm::Fct::Opr);
         assert_eq!(generator.code[4].l, 0);
         assert_eq!(generator.code[4].a, 5);
+    }
+
+    /* test simple plus expression */
+    #[test]
+    fn test_simple_plus_expression() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("18 / 9 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_expression(0, &mut lex);
+
+        /* 18, 9, /, 2, +, */
+        assert_eq!(generator.code_pointer, 5);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 18);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 5);
+        assert_eq!(generator.code[3].f, vm::Fct::Lit);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 2);
+        assert_eq!(generator.code[4].f, vm::Fct::Opr);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 2);
+    }
+
+    /* test simple minus expression */
+    #[test]
+    fn test_simple_minus_expression() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("18 / 9 - 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_expression(0, &mut lex);
+
+        /* 18, 9, /, 2, -, */
+        assert_eq!(generator.code_pointer, 5);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 18);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 5);
+        assert_eq!(generator.code[3].f, vm::Fct::Lit);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 2);
+        assert_eq!(generator.code[4].f, vm::Fct::Opr);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 3);
     }
 }

@@ -972,4 +972,172 @@ mod tests {
         assert_eq!(generator.code[5].l, 0);
         assert_eq!(generator.code[5].a, 3);
     }
+
+    /* test odd condition */
+    #[test]
+    fn test_condition_odd() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("odd 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 6);
+    }
+
+    /* test equal condition */
+    #[test]
+    fn test_condition_eql() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("= 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 8);
+    }
+
+    /* test not equal condition */
+    #[test]
+    fn test_condition_neq() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("!= 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 9);
+    }
+
+    /* test less condition */
+    #[test]
+    fn test_condition_lss() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("< 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 10);
+    }
+
+    /* test greater or equal condition */
+    #[test]
+    fn test_condition_geq() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content(">= 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 11);
+    }
+
+    /* test greater than condition */
+    #[test]
+    fn test_condition_gtr() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("> 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 12);
+    }
+
+    /* test less or equal condition */
+    #[test]
+    fn test_condition_leq() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("<= 1 + 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_condition(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 4);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 2);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 13);
+    }
 }

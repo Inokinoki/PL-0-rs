@@ -530,7 +530,6 @@ impl CodeGenerator {
         if *lexer.current() == symbol::Symbol::Minus {
             is_positive = false;
         }
-
         {
             lexer.next();
         }
@@ -937,5 +936,39 @@ mod tests {
         assert_eq!(generator.code[4].f, vm::Fct::Opr);
         assert_eq!(generator.code[4].l, 0);
         assert_eq!(generator.code[4].a, 3);
+    }
+
+    /* test negative minus expression */
+    #[test]
+    fn test_negative_minus_expression() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("- 18 / 9 - 2");
+        let mut generator = codegen::CodeGenerator::new();
+
+        {
+            lex.next();
+        }
+        generator.parse_expression(0, &mut lex);
+
+        /* 18, 9, /, -, 2, -, */
+        assert_eq!(generator.code_pointer, 6);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 18);
+        assert_eq!(generator.code[1].f, vm::Fct::Lit);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 9);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 5);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 1);
+        assert_eq!(generator.code[4].f, vm::Fct::Lit);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 2);
+        assert_eq!(generator.code[5].f, vm::Fct::Opr);
+        assert_eq!(generator.code[5].l, 0);
+        assert_eq!(generator.code[5].a, 3);
     }
 }

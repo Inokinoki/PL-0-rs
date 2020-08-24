@@ -527,10 +527,14 @@ impl CodeGenerator {
     fn parse_factor(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
         // Handle factor
         let mut is_positive = true;
-        if *lexer.current() == symbol::Symbol::Minus {
-            is_positive = false;
-        }
         {
+            lexer.next();
+        }
+
+        if lexer.previous() == symbol::Symbol::Minus {
+            is_positive = false;
+        } else if *lexer.current() == symbol::Symbol::Minus {
+            is_positive = false;
             lexer.next();
         }
         match &lexer.current() {
@@ -945,9 +949,6 @@ mod tests {
             symbol::io::PL0Lexer::create_from_content("- 18 / 9 - 2");
         let mut generator = codegen::CodeGenerator::new();
 
-        {
-            lex.next();
-        }
         generator.parse_expression(0, &mut lex);
 
         /* 18, 9, /, -, 2, -, */

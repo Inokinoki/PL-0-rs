@@ -151,12 +151,15 @@ impl CodeGenerator {
         self.code[self.name_table[self.table_pointer - 1].adr].a = self.code_pointer - 1;
         self.name_table[self.table_pointer - 1].adr = self.code_pointer - 1;
         self.name_table[self.table_pointer - 1].size = data_pointer;
+
         // Statement
         self.parse_statement(level, lexer);
         // Should end with end/semicolon
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Opr, 0, 0));
         // End statement
+
+        println!("{} codes", self.code_pointer);
     }
 
     fn add_into_name_table(&mut self, identity: &str, num: i64, k: nametab::NameTableObject, level: usize, pdx: usize) {
@@ -201,6 +204,7 @@ impl CodeGenerator {
             // Get the next symbol
             lexer.next();
         }
+        println!("{:?}", lexer.current());
         match *lexer.current() {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
@@ -310,8 +314,6 @@ impl CodeGenerator {
                             self.code_pointer += 1;
                             // Write content on the stack top
                             self.code.push(self.gen(vm::Fct::Opr, 0, 14));
-
-                            lexer.next();
                         }
 
                         if *lexer.current() != symbol::Symbol::Comma {
@@ -321,7 +323,7 @@ impl CodeGenerator {
                 }
 
                 if should_continue {
-                    if *lexer.next() != symbol::Symbol::Rparen {
+                    if *lexer.current() != symbol::Symbol::Rparen {
                         should_continue = false;
                     }
                 }
@@ -329,7 +331,7 @@ impl CodeGenerator {
                 if should_continue {
                     self.code_pointer += 1;
                     // New line
-                    self.code.push(self.gen(vm::Fct::Opr, 0, 16));
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 15));
                 }
             },
             symbol::Symbol::Callsym => {
@@ -1165,5 +1167,53 @@ mod tests {
         assert_eq!(generator.code[3].f, vm::Fct::Opr);
         assert_eq!(generator.code[3].l, 0);
         assert_eq!(generator.code[3].a, 13);
+    }
+
+    /* test simple write statement */
+    #[test]
+    fn test_simple_write_statement() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("write(1)");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_statement(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 3);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Opr);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 14);
+        assert_eq!(generator.code[2].f, vm::Fct::Opr);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 15);
+    }
+
+    /* test double write statement */
+    #[test]
+    fn test_double_write_statement() {
+        let mut lex: symbol::io::PL0Lexer =
+            symbol::io::PL0Lexer::create_from_content("write(1, 2)");
+        let mut generator = codegen::CodeGenerator::new();
+
+        generator.parse_statement(0, &mut lex);
+
+        assert_eq!(generator.code_pointer, 5);
+        assert_eq!(generator.code[0].f, vm::Fct::Lit);
+        assert_eq!(generator.code[0].l, 0);
+        assert_eq!(generator.code[0].a, 1);
+        assert_eq!(generator.code[1].f, vm::Fct::Opr);
+        assert_eq!(generator.code[1].l, 0);
+        assert_eq!(generator.code[1].a, 14);
+        assert_eq!(generator.code[2].f, vm::Fct::Lit);
+        assert_eq!(generator.code[2].l, 0);
+        assert_eq!(generator.code[2].a, 2);
+        assert_eq!(generator.code[3].f, vm::Fct::Opr);
+        assert_eq!(generator.code[3].l, 0);
+        assert_eq!(generator.code[3].a, 14);
+        assert_eq!(generator.code[4].f, vm::Fct::Opr);
+        assert_eq!(generator.code[4].l, 0);
+        assert_eq!(generator.code[4].a, 15);
     }
 }

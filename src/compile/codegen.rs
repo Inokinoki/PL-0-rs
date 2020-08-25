@@ -30,6 +30,9 @@ impl CodeGenerator {
     }
 
     pub fn build_block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        // Create anonymous main procedure
+        self.add_into_name_table("_main", 0, nametab::NameTableObject::Procedur, 0, 0);
+
         {
             self.block(0, lexer);
         }
@@ -43,6 +46,15 @@ impl CodeGenerator {
     }
 
     pub fn block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        let table_pointer_0 = self.table_pointer;
+
+        // Add jump to code
+        self.code_pointer += 1;
+        self.code.push(self.gen(vm::Fct::Jmp, 0, 0));
+
+        // Set procedur begin pos
+        self.name_table[self.table_pointer - 1].adr = self.code_pointer - 1;
+
         let mut data_pointer: usize = 0;    // Count data size in this block (single level, no deeper)
         {
             lexer.next();
@@ -132,16 +144,23 @@ impl CodeGenerator {
                     if should_continue {
                         // semicolon
                         let symbol = lexer.next();
+
+                        if *symbol != symbol::Symbol::Semicolon {
+                            panic!("Statement is not ended with ;");
+                        }
                     }
-                    if should_continue {
-                        // Enter the next level
-                        self.block(level + 1, lexer);
-                    }
+                    // Enter the next level
+                    self.block(level + 1, lexer);
                     // TODO: add some rescue solution
                 },
                 _ => {
                     // Others should not be here...
+                    break;
                 },
+            }
+
+            {
+                lexer.next();
             }
 
             if *lexer.current() != symbol::Symbol::Constsym
@@ -153,14 +172,13 @@ impl CodeGenerator {
         }
 
         // Generate current block
+        self.code[self.name_table[table_pointer_0 - 1].adr].a = self.code_pointer;
+        self.name_table[table_pointer_0 - 1].adr = self.code_pointer;
+        self.name_table[table_pointer_0 - 1].size = data_pointer;
 
         // Begin statement
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Inte, 0, data_pointer));
-
-        self.code[self.name_table[self.table_pointer - 1].adr].a = self.code_pointer - 1;
-        self.name_table[self.table_pointer - 1].adr = self.code_pointer - 1;
-        self.name_table[self.table_pointer - 1].size = data_pointer;
 
         // Statement
         self.parse_statement(level, lexer);
@@ -218,6 +236,7 @@ impl CodeGenerator {
         match *lexer.current() {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
+                println!("Got ident: {}", lexer.current_content());
 
                 // Get the index of identifier
                 let identifier_index: usize = self.find_variable(lexer.current_content(), self.table_pointer);

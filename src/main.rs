@@ -14,7 +14,7 @@ fn main() {
     println!("Input pl/0 file?");
     // io::stdin().read_line(&mut input_file_name).expect("Failed to read line");
 
-    input_file_name = "sample/sample5.pl0".to_string();
+    input_file_name = "sample/sample0.pl0".to_string();
     println!("Reading {:?}", input_file_name);
 
     let contents = fs::read_to_string(input_file_name)

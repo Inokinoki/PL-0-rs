@@ -58,6 +58,7 @@ impl PL0VirtualMachine {
         self.bp = 0;
         self.sp = 0;
 
+        self.sp = 3;
         self.stack.push(0);
         self.stack.push(0);
         self.stack.push(0);
@@ -75,7 +76,7 @@ impl PL0VirtualMachine {
         self.current_instruction = self.instructions[self.pc];
 
         // Debug purpose
-        // println!("{:?}", self.current_instruction.f);
+        println!("\n{} {:?} {}", self.pc, self.current_instruction.f, self.current_instruction.a);
 
         self.pc += 1;   // Move PC
 

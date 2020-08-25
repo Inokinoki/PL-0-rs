@@ -58,6 +58,10 @@ impl PL0VirtualMachine {
         self.bp = 0;
         self.sp = 0;
 
+        self.stack.push(0);
+        self.stack.push(0);
+        self.stack.push(0);
+
         loop {
             self.single_step_execute();     // Single step
 
@@ -86,8 +90,8 @@ impl PL0VirtualMachine {
                     0 => {
                         // Exit to the higher layer
                         self.sp = self.bp;
-                        self.pc = 0;
-                        // self.bp = self.stack[self.sp + 1 - 1] as usize;
+                        self.pc = self.stack[self.sp + 2 - 1] as usize;
+                        self.bp = self.stack[self.sp + 1 - 1] as usize;
                     },
                     1 => {
                         // Inverse the number on the top of stack

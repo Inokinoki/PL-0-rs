@@ -30,6 +30,19 @@ impl CodeGenerator {
     }
 
     pub fn build_block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
+        {
+            self.block(0, lexer);
+        }
+
+        let sym = lexer.next();
+        if *sym == symbol::Symbol::Period {
+            println!("Parsing finished");
+        } else {
+            println!("Parsing Failed {:?}", sym);
+        }
+    }
+
+    pub fn block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         let mut data_pointer: usize = 0;    // Count data size in this block (single level, no deeper)
         {
             lexer.next();
@@ -122,7 +135,7 @@ impl CodeGenerator {
                     }
                     if should_continue {
                         // Enter the next level
-                        self.build_block(level + 1, lexer);
+                        self.block(level + 1, lexer);
                     }
                     // TODO: add some rescue solution
                 },
@@ -131,9 +144,6 @@ impl CodeGenerator {
                 },
             }
 
-            {
-                lexer.next();
-            }
             if *lexer.current() != symbol::Symbol::Constsym
                 && *lexer.current() != symbol::Symbol::Varsym
                 && *lexer.current() != symbol::Symbol::Procsym {
@@ -396,17 +406,18 @@ impl CodeGenerator {
 
                 loop {
                     {
-                        // Get the next symbol
                         lexer.next();
                     }
+
                     if *lexer.current() != symbol::Symbol::Semicolon {
+                        panic!("Statement is not ended with ;");
                         break;
                     }
                     self.parse_statement(level, lexer);
-                }
 
-                if *lexer.current() != symbol::Symbol::Endsym {
-                    // Can raise an error
+                    if *lexer.current() == symbol::Symbol::Endsym {
+                        break;
+                    }
                 }
             },
             symbol::Symbol::Whilesym => {

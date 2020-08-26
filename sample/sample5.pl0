@@ -1,0 +1,8 @@
+const a=10; var b;
+
+begin
+   write(a, 20);
+   b := 25;
+   write(30);
+   write(b)
+end.

@@ -231,11 +231,11 @@ impl CodeGenerator {
     }
 
     fn parse_statement(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        {
-            // Get the next symbol
+        if *lexer.current() == symbol::Symbol::Semicolon {
+            // Get the next symbol if upper level doesn't do that
             lexer.next();
         }
-        println!("{:?}", lexer.current());
+        println!("Parsing statement starting with {:?}", lexer.current());
         match *lexer.current() {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
@@ -264,10 +264,12 @@ impl CodeGenerator {
                     self.code_pointer += 1;
                     self.code.push(self.gen(
                         vm::Fct::Sto,
-                        level - self.name_table[identifier_index].level,
-                        self.name_table[identifier_index].adr
+                        level - self.name_table[identifier_index - 1].level,
+                        self.name_table[identifier_index - 1].adr
                     ));
                 }
+
+                println!("Become statement ends up with {:?}", lexer.current());
             },
             symbol::Symbol::Readsym => {
                 // read()
@@ -358,12 +360,17 @@ impl CodeGenerator {
                     if *lexer.current() != symbol::Symbol::Rparen {
                         should_continue = false;
                     }
+                    println!("Write sym ends with )");
                 }
 
                 if should_continue {
                     self.code_pointer += 1;
                     // New line
                     self.code.push(self.gen(vm::Fct::Opr, 0, 15));
+                }
+
+                {
+                    lexer.next();
                 }
             },
             symbol::Symbol::Callsym => {
@@ -423,17 +430,20 @@ impl CodeGenerator {
             },
             symbol::Symbol::Beginsym => {
                 let mut should_continue = false;
+                {
+                    lexer.next();
+                }
 
                 self.parse_statement(level, lexer);
 
                 loop {
-                    {
-                        lexer.next();
+                    if *lexer.current() != symbol::Symbol::Semicolon {
+                        panic!("Statement is not ended with ;, {:?}", lexer.current());
+                        break;
                     }
 
-                    if *lexer.current() != symbol::Symbol::Semicolon {
-                        panic!("Statement is not ended with ;");
-                        break;
+                    {
+                        lexer.next();
                     }
                     self.parse_statement(level, lexer);
 
@@ -470,6 +480,8 @@ impl CodeGenerator {
                 // I cannot handle the sym
             },
         }
+
+        println!("Statement parsed ok");
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {

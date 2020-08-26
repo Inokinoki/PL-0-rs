@@ -154,6 +154,7 @@ impl PL0VirtualMachine {
                     14 => {
                         print!("{}", self.stack[self.sp - 1]);
                         self.sp -= 1;
+                        self.stack.pop();
                     },
                     15 => {
                         print!("\n");
@@ -166,7 +167,7 @@ impl PL0VirtualMachine {
 
                         match input_number.trim().parse() {
                             Ok(num) => {
-                                self.stack[self.sp] = num;
+                                self.stack.push(num);
                                 self.sp += 1;
                             },
                             Err(err) => {
@@ -183,8 +184,12 @@ impl PL0VirtualMachine {
             Fct::Lod => {
                 // Push the data on address a (base b) to the stack
                 self.sp += 1;
+                println!("Lod: {} {} - {}", base(self.current_instruction.l, &self.stack, self.bp),
+                    self.current_instruction.a, self.stack[
+                        base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
+                    ]);
                 self.stack.push(self.stack[
-                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
+                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
                 ]);
             },
             Fct::Sto => {

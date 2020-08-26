@@ -97,6 +97,7 @@ impl CodeGenerator {
                                 number = lexer.current_content().parse::<i64>()
                                     .expect("Cannot parse i64 constant from current token");
                                 self.add_into_name_table(&identity, number, nametab::NameTableObject::Constant, level, data_pointer);
+                                data_pointer += 1;
                             }
                         }
                         let symbol = lexer.next();
@@ -120,6 +121,7 @@ impl CodeGenerator {
                             }
                             identity = lexer.current_content().to_string();
                             self.add_into_name_table(&identity, 0, nametab::NameTableObject::Variable, level, data_pointer);
+                            data_pointer += 1;
                         }
                         let symbol = lexer.next();
                         if *symbol == symbol::Symbol::Semicolon {
@@ -141,6 +143,7 @@ impl CodeGenerator {
                         }
                         identity = lexer.current_content().to_string();
                         self.add_into_name_table(&identity, 0, nametab::NameTableObject::Procedur, level, data_pointer);
+                        data_pointer += 1;
                     }
                     if should_continue {
                         // semicolon

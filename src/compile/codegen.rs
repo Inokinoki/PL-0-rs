@@ -48,7 +48,6 @@ impl CodeGenerator {
     pub fn block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         let table_pointer_0 = self.table_pointer;
 
-        println!("=============== Level {} ===============", level);
         // Add jump to code
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Jmp, 0, 0));
@@ -84,7 +83,6 @@ impl CodeGenerator {
                                 should_continue = false;
                             }
                             if *symbol == symbol::Symbol::Becomes {
-                                println!("Error: {:?} cannot be :=", lexer.current_index());
                                 should_continue = false;
                             }
                         }
@@ -197,9 +195,6 @@ impl CodeGenerator {
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Opr, 0, 0));
         // End statement
-
-        println!("=============== Level {} End ===============", level);
-        println!("{} codes", self.code_pointer);
     }
 
     fn add_into_name_table(&mut self, identity: &str, num: i64, k: nametab::NameTableObject, level: usize, pdx: usize) {
@@ -244,11 +239,9 @@ impl CodeGenerator {
             // Get the next symbol if upper level doesn't do that
             lexer.next();
         }
-        println!("Parsing statement starting with {:?}", lexer.current());
         match *lexer.current() {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
-                println!("=> Got ident: {}", lexer.current_content());
 
                 // Get the index of identifier
                 let identifier_index: usize = self.find_variable(lexer.current_content(), self.table_pointer);
@@ -434,15 +427,12 @@ impl CodeGenerator {
 
                 loop {
                     if *lexer.current() != symbol::Symbol::Semicolon && *lexer.current() != symbol::Symbol::Endsym {
-                        println!("- Semicolon not in Begin Stmt ;Stmt End {:?}",  lexer.current());
                         lexer.next();
-                        println!("- Semicolon not in Begin Stmt ;Stmt End {:?}",  lexer.current());
                     }
                     if *lexer.current() == symbol::Symbol::Endsym || *lexer.current() == symbol::Symbol::Period {
                         if *lexer.current() == symbol::Symbol::Endsym {
                             lexer.next();
                         }
-                        println!("Begin end {}", level);
                         break;
                     }
                     if *lexer.current() != symbol::Symbol::Semicolon {
@@ -486,8 +476,6 @@ impl CodeGenerator {
                 // I cannot handle the sym
             },
         }
-
-        println!("Statement parsed ok {:?}", lexer.current());
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {
@@ -543,7 +531,6 @@ impl CodeGenerator {
 
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
         let mut is_positive = self.parse_factor(level, lexer);
-        println!("Starting term {:?} {}", lexer.current(), lexer.current_content());
         loop {
             let mut is_time = false;
             let mut is_slash = false;
@@ -611,7 +598,6 @@ impl CodeGenerator {
                                 self.name_table[index - 1].val as usize));
                         },
                         nametab::NameTableObject::Variable => {
-                            println!("Lod {} {} {} {}", self.name_table[index - 1].name, index, level, self.name_table[index - 1].level);
                             self.code_pointer += 1;
                             self.code.push(self.gen(vm::Fct::Lod,
                                 level - self.name_table[index - 1].level,

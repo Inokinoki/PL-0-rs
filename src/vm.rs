@@ -76,7 +76,7 @@ impl PL0VirtualMachine {
         self.current_instruction = self.instructions[self.pc];
 
         // Debug purpose
-        println!("\n{} {:?} {}", self.pc, self.current_instruction.f, self.current_instruction.a);
+        // println!("\n{} {:?} {}", self.pc, self.current_instruction.f, self.current_instruction.a);
 
         self.pc += 1;   // Move PC
 
@@ -184,10 +184,6 @@ impl PL0VirtualMachine {
             Fct::Lod => {
                 // Push the data on address a (base b) to the stack
                 self.sp += 1;
-                println!("Lod: {} {}", base(self.current_instruction.l, &self.stack, self.bp),
-                    self.current_instruction.a/*, self.stack[
-                        base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
-                    ]*/);
                 self.stack.push(self.stack[
                     base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
                 ]);

@@ -32,5 +32,5 @@ fn main() {
         vm::PL0VirtualMachine::load(generator.get_vm_code().to_vec());
     pl0_vm_1.execute();
 
-    println!("\nExecution terminated");
+    println!("Execution terminated");
 }

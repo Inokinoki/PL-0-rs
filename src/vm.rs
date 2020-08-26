@@ -194,15 +194,19 @@ impl PL0VirtualMachine {
             },
             Fct::Sto => {
                 // Stock
+                let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1;
+                
+                self.stack[adr] = self.stack[self.sp - 1];
+
                 self.sp -= 1;
-                let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a;
-                self.stack[adr] = self.stack[self.sp];
+                self.stack.pop();
             },
             Fct::Cal => {
                 // Call a procedure
-                self.stack[self.sp - 1] = base(self.current_instruction.l, &self.stack, self.bp) as i64;
-                self.stack[self.sp + 1 - 1] = self.bp as i64;
-                self.stack[self.sp + 2 - 1] = self.pc as i64;
+                self.sp += 3;
+                self.stack.push(base(self.current_instruction.l, &self.stack, self.bp) as i64);
+                self.stack.push(self.bp as i64);
+                self.stack.push(self.pc as i64);
 
                 self.bp = self.sp;
                 self.pc = self.current_instruction.a;   // Jump

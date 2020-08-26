@@ -176,6 +176,9 @@ impl CodeGenerator {
         self.name_table[table_pointer_0 - 1].adr = self.code_pointer;
         self.name_table[table_pointer_0 - 1].size = data_pointer;
 
+        // Record current code pointer pos
+        // let code_pointer_0 = self.code_pointer;
+
         // Begin statement
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Inte, 0, data_pointer));

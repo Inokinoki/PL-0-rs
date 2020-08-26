@@ -184,12 +184,12 @@ impl PL0VirtualMachine {
             Fct::Lod => {
                 // Push the data on address a (base b) to the stack
                 self.sp += 1;
-                println!("Lod: {} {} - {}", base(self.current_instruction.l, &self.stack, self.bp),
-                    self.current_instruction.a, self.stack[
-                        base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
-                    ]);
+                println!("Lod: {} {}", base(self.current_instruction.l, &self.stack, self.bp),
+                    self.current_instruction.a/*, self.stack[
+                        base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
+                    ]*/);
                 self.stack.push(self.stack[
-                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
+                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
                 ]);
             },
             Fct::Sto => {
@@ -214,6 +214,11 @@ impl PL0VirtualMachine {
             Fct::Inte => {
                 // Expand stack
                 self.sp += self.current_instruction.a;
+                let mut counter = 0;
+                while counter < self.current_instruction.a {
+                    self.stack.push(0);
+                    counter += 1;
+                }
             },
             Fct::Jmp => {
                 // Jump

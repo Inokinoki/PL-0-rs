@@ -5,7 +5,7 @@ var temp, addition, count;
 procedure add;
   begin
      temp:=temp+2;
-     write(temp);
+     write(temp)
   end;
 
 begin
@@ -16,13 +16,13 @@ begin
        begin
            call add;
            count:=count+1;
-           addition:=addition+temp;
+           addition:=addition+temp
        end;
-    result:=addition/count;
+    result:=addition/count
 end;
 
 begin
    write(a);
    call average;
-   write(result);
+   write(result)
 end.

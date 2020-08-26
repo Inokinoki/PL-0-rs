@@ -37,7 +37,7 @@ impl CodeGenerator {
             self.block(0, lexer);
         }
 
-        let sym = lexer.next();
+        let sym = lexer.current();
         if *sym == symbol::Symbol::Period {
             println!("Parsing finished");
         } else {
@@ -48,6 +48,7 @@ impl CodeGenerator {
     pub fn block(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
         let table_pointer_0 = self.table_pointer;
 
+        println!("=============== Level {} ===============", level);
         // Add jump to code
         self.code_pointer += 1;
         self.code.push(self.gen(vm::Fct::Jmp, 0, 0));
@@ -99,7 +100,7 @@ impl CodeGenerator {
                             }
                         }
                         let symbol = lexer.next();
-                        if *symbol != symbol::Symbol::Comma || *symbol == symbol::Symbol::Semicolon {
+                        if *symbol == symbol::Symbol::Semicolon {
                             // break
                             break;
                         }
@@ -121,7 +122,7 @@ impl CodeGenerator {
                             self.add_into_name_table(&identity, 0, nametab::NameTableObject::Variable, level, data_pointer);
                         }
                         let symbol = lexer.next();
-                        if *symbol != symbol::Symbol::Comma || *symbol == symbol::Symbol::Semicolon {
+                        if *symbol == symbol::Symbol::Semicolon {
                             // break
                             break;
                         }
@@ -146,11 +147,15 @@ impl CodeGenerator {
                         let symbol = lexer.next();
 
                         if *symbol != symbol::Symbol::Semicolon {
-                            panic!("Statement is not ended with ;");
+                            panic!("Procedur is not ended with ;");
                         }
                     }
                     // Enter the next level
                     self.block(level + 1, lexer);
+   
+                    if *lexer.current() != symbol::Symbol::Semicolon {
+                        panic!("Block is not ended with ;");
+                    }
                     // TODO: add some rescue solution
                 },
                 _ => {
@@ -190,6 +195,7 @@ impl CodeGenerator {
         self.code.push(self.gen(vm::Fct::Opr, 0, 0));
         // End statement
 
+        println!("=============== Level {} End ===============", level);
         println!("{} codes", self.code_pointer);
     }
 
@@ -239,7 +245,7 @@ impl CodeGenerator {
         match *lexer.current() {
             symbol::Symbol::Ident => {
                 // Handle as a assignment statement
-                println!("Got ident: {}", lexer.current_content());
+                println!("=> Got ident: {}", lexer.current_content());
 
                 // Get the index of identifier
                 let identifier_index: usize = self.find_variable(lexer.current_content(), self.table_pointer);
@@ -268,8 +274,6 @@ impl CodeGenerator {
                         self.name_table[identifier_index - 1].adr
                     ));
                 }
-
-                println!("Become statement ends up with {:?}", lexer.current());
             },
             symbol::Symbol::Readsym => {
                 // read()
@@ -312,20 +316,16 @@ impl CodeGenerator {
                                 level - self.name_table[identifier_index].level,
                                 self.name_table[identifier_index].adr
                             ));
-
-                            lexer.next();
                         }
 
-                        if *lexer.current() != symbol::Symbol::Comma {
+                        if *lexer.next() != symbol::Symbol::Comma {
                             break;
                         }
                     }
                 }
 
-                if should_continue {
-                    if *lexer.next() != symbol::Symbol::Rparen {
-                        should_continue = false;
-                    }
+                if *lexer.next() != symbol::Symbol::Rparen {
+                    panic!("Read statement should end with Rparent )");
                 }
             },
             symbol::Symbol::Writesym => {
@@ -356,21 +356,14 @@ impl CodeGenerator {
                     }
                 }
 
-                if should_continue {
-                    if *lexer.current() != symbol::Symbol::Rparen {
-                        should_continue = false;
-                    }
-                    println!("Write sym ends with )");
+                if *lexer.current() != symbol::Symbol::Rparen {
+                    panic!("Write statement should end with Rparent )")
                 }
 
                 if should_continue {
                     self.code_pointer += 1;
                     // New line
                     self.code.push(self.gen(vm::Fct::Opr, 0, 15));
-                }
-
-                {
-                    lexer.next();
                 }
             },
             symbol::Symbol::Callsym => {
@@ -395,10 +388,10 @@ impl CodeGenerator {
                     should_continue = false;
                 }
 
-                if self.name_table[index].kind == nametab::NameTableObject::Procedur {
+                if self.name_table[index - 1].kind == nametab::NameTableObject::Procedur {
                     self.code_pointer += 1;
                     self.code.push(self.gen(vm::Fct::Cal, 
-                        level - self.name_table[index].level, self.name_table[index].adr));
+                        level - self.name_table[index - 1].level, self.name_table[index - 1].adr));
                 }
             },
             symbol::Symbol::Ifsym => {
@@ -437,19 +430,27 @@ impl CodeGenerator {
                 self.parse_statement(level, lexer);
 
                 loop {
+                    if *lexer.current() != symbol::Symbol::Semicolon && *lexer.current() != symbol::Symbol::Endsym {
+                        println!("- Semicolon not in Begin Stmt ;Stmt End {:?}",  lexer.current());
+                        lexer.next();
+                        println!("- Semicolon not in Begin Stmt ;Stmt End {:?}",  lexer.current());
+                    }
+                    if *lexer.current() == symbol::Symbol::Endsym || *lexer.current() == symbol::Symbol::Period {
+                        if *lexer.current() == symbol::Symbol::Endsym {
+                            lexer.next();
+                        }
+                        println!("Begin end {}", level);
+                        break;
+                    }
                     if *lexer.current() != symbol::Symbol::Semicolon {
                         panic!("Statement is not ended with ;, {:?}", lexer.current());
-                        break;
                     }
 
-                    {
-                        lexer.next();
-                    }
                     self.parse_statement(level, lexer);
-
-                    if *lexer.current() == symbol::Symbol::Endsym {
-                        break;
-                    }
+                }
+                if lexer.previous() != symbol::Symbol::Endsym &&
+                    *lexer.current() != symbol::Symbol::Period {
+                    panic!("Begin should end with Endsym");
                 }
             },
             symbol::Symbol::Whilesym => {
@@ -464,12 +465,14 @@ impl CodeGenerator {
                 // Generate Jump before parse statement
                 self.code_pointer += 1;
                 self.code.push(self.gen(vm::Fct::Jpc, 0, 0));
-
-                if *lexer.current() != symbol::Symbol::Dosym {
+                if *lexer.next() != symbol::Symbol::Dosym {
                     should_continue = false;
                 }
 
                 if should_continue {
+                    {
+                        lexer.next();
+                    }
                     self.parse_statement(level, lexer);
                     self.code_pointer += 1;
                     self.code.push(self.gen(vm::Fct::Jpc, 0, cx1));  // Jump to condition
@@ -481,7 +484,7 @@ impl CodeGenerator {
             },
         }
 
-        println!("Statement parsed ok");
+        println!("Statement parsed ok {:?}", lexer.current());
     }
 
     fn find_variable(&self, name: &str, tail: usize) -> usize {
@@ -537,10 +540,14 @@ impl CodeGenerator {
 
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
         let mut is_positive = self.parse_factor(level, lexer);
-
+        println!("Starting term {:?} {}", lexer.current(), lexer.current_content());
         loop {
             let mut is_time = false;
             let mut is_slash = false;
+
+            {
+                lexer.next();
+            }
 
             match *lexer.current() {
                 symbol::Symbol::Times => {
@@ -551,6 +558,8 @@ impl CodeGenerator {
                 },
                 _ => {
                     // Nothing
+                    // panic!("There should be * or / between terms");
+                    break;
                 },
             }
 
@@ -562,15 +571,6 @@ impl CodeGenerator {
             } else if is_slash {
                 self.code_pointer += 1;
                 self.code.push(self.gen(vm::Fct::Opr, 0, 5));
-            }
-
-            if *lexer.current() == symbol::Symbol::Number {
-                lexer.next();
-            }
-
-            if *lexer.current() != symbol::Symbol::Times && *lexer.current() != symbol::Symbol::Slash {
-                // assert_eq!(*lexer.current(), symbol::Symbol::Times);
-                break;
             }
         }
 
@@ -608,6 +608,7 @@ impl CodeGenerator {
                                 self.name_table[index - 1].val as usize));
                         },
                         nametab::NameTableObject::Variable => {
+                            println!("Lod {} {} {} {}", self.name_table[index - 1].name, index, level, self.name_table[index - 1].level);
                             self.code_pointer += 1;
                             self.code.push(self.gen(vm::Fct::Lod,
                                 level - self.name_table[index - 1].level,
@@ -635,7 +636,7 @@ impl CodeGenerator {
                 }
 
                 if *lexer.current() != symbol::Symbol::Rparen {
-                    // TODO: raise an error
+                    panic!("Expression factor should be Rparen )");
                 }
             },
             _ => {
@@ -653,45 +654,47 @@ impl CodeGenerator {
             lexer.next();
         }
 
-        match *lexer.current() {
-            symbol::Symbol::Oddsym => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 6));
-            },
-            symbol::Symbol::Eql => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 8));
-            },
-            symbol::Symbol::Neq => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 9));
-            },
-            symbol::Symbol::Lss => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 10));
-            },
-            symbol::Symbol::Geq => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 11));
-            },
-            symbol::Symbol::Gtr => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 12));
-            },
-            symbol::Symbol::Leq => {
-                self.parse_expression(level, lexer);
-                self.code_pointer += 1;
-                self.code.push(self.gen(vm::Fct::Opr, 0, 13));
-            },
-            _ => {
-                // I will not handle it
-            },
+        if *lexer.current() == symbol::Symbol::Oddsym {
+            self.parse_expression(level, lexer);
+            self.code_pointer += 1;
+            self.code.push(self.gen(vm::Fct::Opr, 0, 6));
+        } else {
+            self.parse_expression(level, lexer);
+            match *lexer.current() {
+                symbol::Symbol::Eql => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 8));
+                },
+                symbol::Symbol::Neq => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 9));
+                },
+                symbol::Symbol::Lss => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 10));
+                },
+                symbol::Symbol::Geq => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 11));
+                },
+                symbol::Symbol::Gtr => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 12));
+                },
+                symbol::Symbol::Leq => {
+                    self.parse_expression(level, lexer);
+                    self.code_pointer += 1;
+                    self.code.push(self.gen(vm::Fct::Opr, 0, 13));
+                },
+                _ => {
+                    // I will not handle it
+                },
+            }
         }
     }
 

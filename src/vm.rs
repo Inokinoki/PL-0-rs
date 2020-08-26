@@ -185,12 +185,12 @@ impl PL0VirtualMachine {
                 // Push the data on address a (base b) to the stack
                 self.sp += 1;
                 self.stack.push(self.stack[
-                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1
+                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
                 ]);
             },
             Fct::Sto => {
                 // Stock
-                let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a - 1;
+                let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a;
                 
                 self.stack[adr] = self.stack[self.sp - 1];
 

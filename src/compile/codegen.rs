@@ -418,7 +418,7 @@ impl CodeGenerator {
                 }
             },
             symbol::Symbol::Beginsym => {
-                let mut should_continue = false;
+                let should_continue = false;
                 {
                     lexer.next();
                 }
@@ -530,7 +530,7 @@ impl CodeGenerator {
     }
 
     fn parse_term(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) -> bool {
-        let mut is_positive = self.parse_factor(level, lexer);
+        let is_positive = self.parse_factor(level, lexer);
         loop {
             let mut is_time = false;
             let mut is_slash = false;
@@ -637,7 +637,7 @@ impl CodeGenerator {
     }
 
     fn parse_condition(&mut self, level: usize, lexer: &mut symbol::io::PL0Lexer) {
-        let mut should_continue = true;
+        let should_continue = true;
 
         {
             lexer.next();

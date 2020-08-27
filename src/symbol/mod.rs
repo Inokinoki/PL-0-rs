@@ -1,7 +1,6 @@
 
 use logos::Logos;
 
-pub const SYMBOL_NUMBER: u8 = 32;
 /* legal symbols */
 #[derive(Logos, Debug, PartialEq, Copy, Clone)]
 pub enum Symbol {

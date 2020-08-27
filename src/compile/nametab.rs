@@ -1,4 +1,3 @@
-const NAME_TABLE_CAPACITY: u16 = 100;
 
 /* types in name table */
 #[derive(PartialEq)]

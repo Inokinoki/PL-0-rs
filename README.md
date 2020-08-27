@@ -52,8 +52,9 @@ cargo build
 ```
 cargo run <pl/0-file-path>
 ```
+The output will be there.
 
-Up to now
+Up to now, only the `sample1.pl0` and `sample5.pl0` can be correctly executed and give the right output (WHAT A PITY).
 
 ## Test
 

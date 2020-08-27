@@ -1213,6 +1213,7 @@ mod tests {
             symbol::io::PL0Lexer::create_from_content("write(1)");
         let mut generator = codegen::CodeGenerator::new();
 
+        lex.next();
         generator.parse_statement(0, &mut lex);
 
         assert_eq!(generator.code_pointer, 3);
@@ -1234,6 +1235,7 @@ mod tests {
             symbol::io::PL0Lexer::create_from_content("write(1, 2)");
         let mut generator = codegen::CodeGenerator::new();
 
+        lex.next();
         generator.parse_statement(0, &mut lex);
 
         assert_eq!(generator.code_pointer, 5);

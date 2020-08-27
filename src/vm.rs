@@ -76,7 +76,7 @@ impl PL0VirtualMachine {
         self.current_instruction = self.instructions[self.pc];
 
         // Debug purpose
-        // println!("\n{} {:?} {}", self.pc, self.current_instruction.f, self.current_instruction.a);
+        println!("\n{} {:?} {} at level {}", self.pc, self.current_instruction.f, self.current_instruction.a, self.current_instruction.l);
 
         self.pc += 1;   // Move PC
 
@@ -85,14 +85,24 @@ impl PL0VirtualMachine {
                 // Push the value of a to the stack
                 self.sp += 1;
                 self.stack.push(self.current_instruction.a as i64);
+                // println!("[SP] {}", self.sp);
             },
             Fct::Opr => {
                 match self.current_instruction.a {
                     0 => {
                         // Exit to the higher layer
-                        self.sp = self.bp;
-                        self.pc = self.stack[self.sp + 2 - 1] as usize;
-                        self.bp = self.stack[self.sp + 1 - 1] as usize;
+                        // println!("[SP] {} [BP] {}", self.sp, self.bp);
+                        while self.sp > self.bp + 3 {
+                            self.stack.pop();
+                            self.sp -= 1;
+                        }
+                        self.pc = self.stack[self.sp - 1] as usize;
+                        self.bp = self.stack[self.sp - 2] as usize;
+                        // println!("Base: {}, BP: {}, PC: {}", self.stack[self.sp - 3], self.stack[self.sp - 2], self.stack[self.sp - 1]);
+                        self.stack.pop();
+                        self.stack.pop();
+                        self.stack.pop();
+                        self.sp -= 3;
                     },
                     1 => {
                         // Inverse the number on the top of stack
@@ -155,6 +165,7 @@ impl PL0VirtualMachine {
                         print!("{}", self.stack[self.sp - 1]);
                         self.sp -= 1;
                         self.stack.pop();
+                        // println!("[SP] {}", self.sp);
                     },
                     15 => {
                         print!("\n");
@@ -187,29 +198,37 @@ impl PL0VirtualMachine {
                 self.stack.push(self.stack[
                     base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
                 ]);
+                // println!("Loading [{}]{}", base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a, 
+                //self.stack[
+                //    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
+                //]);
+                // println!("[SP] {}", self.sp);
             },
             Fct::Sto => {
                 // Stock
                 let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a;
-                
-                self.stack[adr] = self.stack[self.sp - 1];
+                // println!("Stocking [{}]{} into [{}]", self.sp, self.stack[self.sp - 1], adr);
+                self.stack[adr - 1] = self.stack[self.sp - 1];
 
                 self.sp -= 1;
                 self.stack.pop();
             },
             Fct::Cal => {
                 // Call a procedure
-                self.sp += 3;
+                // println!("[SP] {}", self.sp);
                 self.stack.push(base(self.current_instruction.l, &self.stack, self.bp) as i64);
                 self.stack.push(self.bp as i64);
                 self.stack.push(self.pc as i64);
-
                 self.bp = self.sp;
+                self.sp += 3;
+                // println!("[Call Stack] {} {} {}", self.stack[self.sp - 3], self.stack[self.sp - 2], self.stack[self.sp - 1]);
                 self.pc = self.current_instruction.a;   // Jump
+                // println!("[SP] {}", self.sp);
             },
             Fct::Inte => {
                 // Expand stack
                 self.sp += self.current_instruction.a;
+                // println!("[SP] {}", self.sp);
                 let mut counter = 0;
                 while counter < self.current_instruction.a {
                     self.stack.push(0);

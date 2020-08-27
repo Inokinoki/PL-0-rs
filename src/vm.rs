@@ -55,11 +55,11 @@ impl PL0VirtualMachine {
 
     pub fn execute(&mut self) {
         self.pc = 0;
-        self.bp = 0;
+        self.bp = 3;
         self.sp = 0;
 
         self.sp = 3;
-        self.stack.push(0);
+        self.stack.push(3);
         self.stack.push(0);
         self.stack.push(0);
 
@@ -76,7 +76,7 @@ impl PL0VirtualMachine {
         self.current_instruction = self.instructions[self.pc];
 
         // Debug purpose
-        println!("\n{} {:?} {} at level {}", self.pc, self.current_instruction.f, self.current_instruction.a, self.current_instruction.l);
+        // println!("\n{} {:?} {} at level {}", self.pc, self.current_instruction.f, self.current_instruction.a, self.current_instruction.l);
 
         self.pc += 1;   // Move PC
 
@@ -85,14 +85,13 @@ impl PL0VirtualMachine {
                 // Push the value of a to the stack
                 self.sp += 1;
                 self.stack.push(self.current_instruction.a as i64);
-                // println!("[SP] {}", self.sp);
             },
             Fct::Opr => {
                 match self.current_instruction.a {
                     0 => {
                         // Exit to the higher layer
                         // println!("[SP] {} [BP] {}", self.sp, self.bp);
-                        while self.sp > self.bp + 3 {
+                        while self.sp > self.bp {
                             self.stack.pop();
                             self.sp -= 1;
                         }
@@ -112,21 +111,25 @@ impl PL0VirtualMachine {
                         // Sum
                         self.sp -= 1;
                         self.stack[self.sp - 1] = self.stack[self.sp - 1] + self.stack[self.sp];
+                        self.stack.pop();
                     },
                     3 => {
                         // Difference
                         self.sp -= 1;
                         self.stack[self.sp - 1] = self.stack[self.sp - 1] - self.stack[self.sp];
+                        self.stack.pop();
                     },
                     4 => {
                         // Multiplication
                         self.sp -= 1;
                         self.stack[self.sp - 1] = self.stack[self.sp - 1] * self.stack[self.sp];
+                        self.stack.pop();
                     },
                     5 => {
                         // Division
                         self.sp -= 1;
                         self.stack[self.sp - 1] = self.stack[self.sp - 1] / self.stack[self.sp];
+                        self.stack.pop();
                     },
                     6 => {
                         self.stack[self.sp - 1] = self.stack[self.sp - 1] % 2;
@@ -135,37 +138,42 @@ impl PL0VirtualMachine {
                         // Equal
                         self.sp -= 1;
                         self.stack[self.sp - 1] = (self.stack[self.sp - 1] == self.stack[self.sp]) as i64;
+                        self.stack.pop();
                     },
                     9 => {
                         // Inequal
                         self.sp -= 1;
                         self.stack[self.sp - 1] = (self.stack[self.sp - 1] != self.stack[self.sp]) as i64;
+                        self.stack.pop();
                     },
                     10 => {
                         // Less
                         self.sp -= 1;
-                        self.stack[self.sp - 1] = (self.stack[self.sp - 1] < self.stack[self.sp]) as i64; 
+                        self.stack[self.sp - 1] = (self.stack[self.sp - 1] < self.stack[self.sp]) as i64;
+                        self.stack.pop(); 
                     },
                     11 => {
                         // Bigger or equal
                         self.sp -= 1;
                         self.stack[self.sp - 1] = (self.stack[self.sp - 1] >= self.stack[self.sp]) as i64; 
+                        self.stack.pop();
                     },
                     12 => {
                         // Bigger
                         self.sp -= 1;
                         self.stack[self.sp - 1] = (self.stack[self.sp - 1] > self.stack[self.sp]) as i64; 
+                        self.stack.pop();
                     },
                     13 => {
                         // Less or equal
                         self.sp -= 1;
                         self.stack[self.sp - 1] = (self.stack[self.sp - 1] <= self.stack[self.sp]) as i64; 
+                        self.stack.pop();
                     },
                     14 => {
                         print!("{}", self.stack[self.sp - 1]);
                         self.sp -= 1;
                         self.stack.pop();
-                        // println!("[SP] {}", self.sp);
                     },
                     15 => {
                         print!("\n");
@@ -198,17 +206,17 @@ impl PL0VirtualMachine {
                 self.stack.push(self.stack[
                     base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
                 ]);
-                // println!("Loading [{}]{}", base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a, 
-                //self.stack[
-                //    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
-                //]);
+                /* println!("Loading [{}] {} relative {}", base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a, 
+                self.stack[
+                    base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a
+                ], self.current_instruction.a);*/
                 // println!("[SP] {}", self.sp);
             },
             Fct::Sto => {
                 // Stock
                 let adr: usize = base(self.current_instruction.l, &self.stack, self.bp) + self.current_instruction.a;
-                // println!("Stocking [{}]{} into [{}]", self.sp, self.stack[self.sp - 1], adr);
-                self.stack[adr - 1] = self.stack[self.sp - 1];
+                // println!("Stocking [{}] {} into [{}]", self.sp, self.stack[self.sp - 1], adr);
+                self.stack[adr] = self.stack[self.sp - 1];
 
                 self.sp -= 1;
                 self.stack.pop();
@@ -219,8 +227,8 @@ impl PL0VirtualMachine {
                 self.stack.push(base(self.current_instruction.l, &self.stack, self.bp) as i64);
                 self.stack.push(self.bp as i64);
                 self.stack.push(self.pc as i64);
-                self.bp = self.sp;
                 self.sp += 3;
+                self.bp = self.sp;
                 // println!("[Call Stack] {} {} {}", self.stack[self.sp - 3], self.stack[self.sp - 2], self.stack[self.sp - 1]);
                 self.pc = self.current_instruction.a;   // Jump
                 // println!("[SP] {}", self.sp);
@@ -260,7 +268,7 @@ fn base(l: usize, s: &Vec<i64>, b: usize) -> usize {
 
     // Search until the first level
     while level > 0 {
-        base_address = s[base_address] as usize;
+        base_address = s[base_address - 3] as usize;
         level -= 1;
     }
     base_address

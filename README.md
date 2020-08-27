@@ -66,7 +66,7 @@ You can run them with
 cargo test
 ```
 
-Some of them might be broken by my latest commits. So, please be patient.
+~~Some of them might be broken by my latest commits. So, please be patient.~~All of them should be passed :)
 
 ## Many TODOs
 

@@ -9,6 +9,7 @@ pub struct PL0Lexer<'a> {
     current_symbol: symbol::Symbol,
     current_symbol_content: String,
     previous_symbol: symbol::Symbol,
+    keep_current_once: bool,
 }
 
 impl PL0Lexer<'_> {
@@ -18,14 +19,19 @@ impl PL0Lexer<'_> {
             current_symbol: symbol::Symbol::Nul,
             current_symbol_content: String::new(),
             previous_symbol: symbol::Symbol::Nul,
+            keep_current_once: false,
         };
         lexer
     }
 
     pub fn next(&mut self) -> &symbol::Symbol {
-        self.previous_symbol = self.current_symbol;
-        self.current_symbol = self.lexer.next().unwrap_or(symbol::Symbol::EOF);
-        self.current_symbol_content = self.lexer.slice().to_string();
+        if !self.keep_current_once {
+            self.previous_symbol = self.current_symbol;
+            self.current_symbol = self.lexer.next().unwrap_or(symbol::Symbol::EOF);
+            self.current_symbol_content = self.lexer.slice().to_string();
+        } else {
+            self.keep_current_once = false;
+        }
         &self.current_symbol
     }
 
@@ -43,5 +49,9 @@ impl PL0Lexer<'_> {
 
     pub fn previous(&self) -> symbol::Symbol {
         self.previous_symbol
+    }
+
+    pub fn keep_once(&mut self) {
+        self.keep_current_once = true;
     }
 }

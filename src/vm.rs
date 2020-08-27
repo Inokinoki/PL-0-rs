@@ -171,7 +171,7 @@ impl PL0VirtualMachine {
                         self.stack.pop();
                     },
                     14 => {
-                        print!("{}", self.stack[self.sp - 1]);
+                        print!("{} ", self.stack[self.sp - 1]);
                         self.sp -= 1;
                         self.stack.pop();
                     },

@@ -601,7 +601,7 @@ impl CodeGenerator {
                             self.code_pointer += 1;
                             self.code.push(self.gen(vm::Fct::Lod,
                                 level - self.name_table[index - 1].level,
-                                self.name_table[index - 1].val as usize));
+                                self.name_table[index - 1].adr));
                         },
                         _ => {
                             // Error, should not be a procedur

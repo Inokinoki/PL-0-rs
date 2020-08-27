@@ -1,0 +1,15 @@
+const a=10; var result;
+procedure average;
+var temp, addition, count;
+begin
+   temp:=10;
+   addition:=12;
+   count:=2;
+   result:=addition/count
+end;
+
+begin
+   write(a);
+   call average;
+   write(result)
+end.

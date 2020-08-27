@@ -1,5 +1,6 @@
 use std::io;
 use std::fs;
+use std::env;
 
 use logos::Logos;
 
@@ -9,12 +10,14 @@ mod compile;
 
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() <= 1 {
+        // Help info
+        panic!("Please pass pl/0 file name as the first command-line argument.");
+    }
+    let mut input_file_name = &args[1];
 
-    let mut input_file_name = String::new();
-    println!("Input pl/0 file?");
-    // io::stdin().read_line(&mut input_file_name).expect("Failed to read line");
-
-    input_file_name = "sample/sample0.pl0".to_string();
+    // input_file_name = "sample/sample1.pl0".to_string();
     println!("Reading {:?}", input_file_name);
 
     let contents = fs::read_to_string(input_file_name)

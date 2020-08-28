@@ -1,0 +1,7 @@
+begin
+   if 2 = 1 then
+		begin
+			write(2,1)
+		end;
+   write(3, 4, 5)
+end.

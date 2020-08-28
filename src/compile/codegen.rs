@@ -394,17 +394,15 @@ impl CodeGenerator {
                 let mut should_continue = true;
                 self.parse_condition(level, lexer);
                 {
-                    // Get the next symbol
-                    lexer.next();
-                }
-
-                {
                     if *lexer.current() != symbol::Symbol::Thensyn {
-                        should_continue = false;
+                        panic!("If condition should be ended with then")
                     }
                 }
 
                 if should_continue {
+                    {
+                        lexer.next();
+                    }
                     let cx1 = self.code_pointer;
 
                     // Generate Jump before parse statement

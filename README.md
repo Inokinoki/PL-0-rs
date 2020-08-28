@@ -1,6 +1,8 @@
 # A naive PL/0 interpreter in Rust
 
-I write this to make myself more familiar with Rust. It just works right now, but doesn't work well. Welcome to contribute, if you can READ (yes, it's not even readable) the project.
+This project is to make me more familiar with Rust. It works right now, but maybe doesn't work well in some cases.
+
+Welcome to any contribution, if you can READ (yes, it's not even readable) the project.
 
 ## PL/0 Introduction
 
@@ -54,7 +56,7 @@ cargo run <pl/0-file-path>
 ```
 The output will be there.
 
-Up to now, only the `sample1.pl0` and `sample5.pl0` can be correctly executed and give the right output (WHAT A PITY).
+Up to now, ~~only the `sample1.pl0` and `sample5.pl0` can be correctly executed and give the right output (WHAT A PITY).~~ all samples can be run correctly (Congratulation) !!!
 
 ## Test
 
@@ -66,12 +68,12 @@ You can run them with
 cargo test
 ```
 
-~~Some of them might be broken by my latest commits. So, please be patient.~~All of them should be passed :)
+~~Some of them might be broken by my latest commits. So, please be patient.~~ All of them should be passed :)
 
 ## Many TODOs
 
-- Error handle
-- Fix While loop parsing (not work yet with `sample/sample0.pl0`)
-- List code, generate symbol table
+- Error handle (some)
+- ~~Fix While loop parsing (not work yet with `sample/sample0.pl0`)~~ Done
+- List code, ~~generate~~ export symbol table
 - VM code to native binary (maybe?)
 - ...

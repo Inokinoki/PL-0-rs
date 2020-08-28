@@ -253,6 +253,7 @@ impl PL0VirtualMachine {
                 if self.stack[self.sp] == 0 {
                     self.pc = self.current_instruction.a;
                 }
+                self.stack.pop();
             },
             _ => {
                 // Other, unsupported instruction

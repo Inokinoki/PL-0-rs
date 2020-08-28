@@ -453,13 +453,13 @@ impl CodeGenerator {
 
                 self.parse_condition(level, lexer);
 
-                let cx2 = self.code_pointer;    // loop end pos
+                let cx2 = self.code_pointer;    // loop begin pos
 
                 // Generate Jump before parse statement
                 self.code_pointer += 1;
                 self.code.push(self.gen(vm::Fct::Jpc, 0, 0));
-                if *lexer.next() != symbol::Symbol::Dosym {
-                    should_continue = false;
+                if *lexer.current() != symbol::Symbol::Dosym {
+                    panic!("While condition should be ended with Do symbol, but get {:?}", lexer.current());
                 }
 
                 if should_continue {
@@ -468,8 +468,8 @@ impl CodeGenerator {
                     }
                     self.parse_statement(level, lexer);
                     self.code_pointer += 1;
-                    self.code.push(self.gen(vm::Fct::Jpc, 0, cx1));  // Jump to condition
-                    self.code[cx1].a = self.code_pointer;
+                    self.code.push(self.gen(vm::Fct::Jmp, 0, cx1));  // Jump to condition
+                    self.code[cx2].a = self.code_pointer;
                 }
             },
             _ => {
